@@ -43,7 +43,7 @@ Lo hace Chris en su Mac; ningún agente puede hacerlo por él.
 
 1. `npm install`. Las dependencias nunca se instalaron en macOS: la sesión que creó el scaffold corría en una VM Linux.
 2. Borrar `_to_delete/`, el `node_modules` de Linux de ese intento.
-3. Limpiar lo que dejó git en esa VM: `rm .git/stale-HEAD-lock .git/stale-maintenance-lock` y `find .git/objects -name 'tmp_obj_*' -delete`. Luego `git fsck` debe salir limpio.
+3. Limpiar lo que dejó git en esa VM: `rm .git/stale-*` y `find .git/objects -name 'tmp_obj_*' -delete`. Luego `git fsck` debe salir limpio.
 4. `npm run dev`. Storybook debe abrir en :6006 con las 13 stories de Button, Badge e Input.
 5. Crear `caravenas/pliego-ui` en GitHub (privado) y hacer `git push -u origin main`.
 

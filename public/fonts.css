@@ -1,0 +1,4 @@
+/* Las tres familias de PliegoStack desde Google Fonts. Opcional: impórtalo
+   solo si tu app no carga ya estas fuentes por su cuenta.
+   JetBrains Mono no se cargaba en PliegoStack; aquí sí. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700;800&display=swap');

@@ -1,0 +1,20 @@
+{
+  "note": "Duraciones y curvas. Viven aparte porque el formato de tokens del Design System no admite movimiento.",
+  "tokens": [
+    {
+      "name": "transition-fast",
+      "value": "150ms cubic-bezier(0.4, 0, 0.2, 1)",
+      "usage": "El único en uso: el fondo de una tarjeta o botón al apuntarlo."
+    },
+    {
+      "name": "transition-normal",
+      "value": "250ms cubic-bezier(0.4, 0, 0.2, 1)",
+      "usage": "Declarado; sin uso todavía."
+    },
+    {
+      "name": "transition-slow",
+      "value": "400ms cubic-bezier(0.4, 0, 0.2, 1)",
+      "usage": "Declarado; sin uso todavía."
+    }
+  ]
+}

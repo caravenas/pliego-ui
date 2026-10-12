@@ -1,0 +1,84 @@
+/*
+ * Un borde de 1 px en todas las variantes, transparente donde no se ve: en la
+ * app el primario no tenía borde y medía 2 px menos que el secundario a su lado.
+ */
+.pui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.pui-button--primary {
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  font-weight: 500;
+}
+
+.pui-button--secondary {
+  border-color: var(--color-border);
+  background: var(--color-bg-primary);
+}
+
+.pui-button--outline {
+  border-color: var(--color-text-primary);
+}
+
+.pui-button--danger {
+  color: var(--color-danger-foreground);
+}
+
+/* El realce solo donde el fondo es papel: sobre la tinta del primario
+   repintaría de blanco un botón con texto blanco. */
+.pui-button--secondary:hover:not(:disabled),
+.pui-button--outline:hover:not(:disabled) {
+  background: var(--color-bg-card-hover);
+}
+
+.pui-button--round {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  flex-shrink: 0;
+}
+
+.pui-button:focus-visible {
+  outline: 2px solid var(--color-accent-ink);
+  outline-offset: 2px;
+}
+
+/* El deshabilitado de todo el sistema: filete en lugar de tinta, texto en muted. */
+.pui-button:disabled {
+  border-color: var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+/* 40 px con puntero fino, 44 px con el dedo. */
+@media (pointer: coarse) {
+  .pui-button {
+    min-height: 44px;
+  }
+
+  .pui-button--round {
+    width: 44px;
+    height: 44px;
+  }
+}

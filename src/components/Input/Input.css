@@ -1,0 +1,40 @@
+.pui-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-text-primary);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  transition: background var(--transition-fast);
+  outline: none;
+}
+
+.pui-input:focus {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Anillo propio, separado del borde que ya se ve, solo con teclado. */
+.pui-input:focus-visible {
+  outline: 2px solid var(--color-accent-ink);
+  outline-offset: 2px;
+}
+
+.pui-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.pui-input:disabled {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+@media (pointer: coarse) {
+  .pui-input {
+    min-height: 44px;
+  }
+}

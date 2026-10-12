@@ -1,0 +1,11 @@
+/* Base mínima para Storybook y para quien la quiera: no se exporta en
+   styles.css, porque una librería no debe reescribir el body de la app. */
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

@@ -1,0 +1,11 @@
+node_modules
+dist
+storybook-static
+*.log
+.DS_Store
+coverage
+_to_delete
+
+# Generados por scripts/build-tokens.ts
+src/styles/tokens.css
+src/tokens.ts

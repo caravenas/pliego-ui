@@ -19,12 +19,14 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 - L-1, primera ejecución real (2026-10-13): **CI en verde** en Linux (typecheck, tests, build, build de Storybook y axe en las 48 stories). **Release** versiona y sube `changeset-release/main`, pero falla al abrir el PR porque «GitHub Actions is not permitted to create or approve pull requests»: hay que activarlo en Settings → Actions → General → Workflow permissions. **Storybook (Pages)** falla porque Pages no está habilitado en el repositorio (Settings → Pages → Source: GitHub Actions).
 - L-11, parcial: `Drawer` no modal sobre Radix Dialog y `Toast` sobre Radix Toast (dependencias autorizadas por Chris el 2026-10-13). Falta `Tooltip`, que solo se hace si aparece un caso real.
 - L-9 cerrado en local: axe sobre las 48 stories (`npm run test:a11y`) y capturas comparadas (`npm run test:visual`). En CI solo corre axe; `pages.yml` está escrito y sin ejecutar.
-- **Siguiente: L-10**, que depende de que el release pueda abrir su PR de versión.
+- L-1 cerrado (2026-10-13): con los dos permisos activados, el release abrió el PR de versión y, al mergearlo, publicó `@caravenas/pliego-ui@0.1.0` en GitHub Packages con `GITHUB_TOKEN` y creó el tag `v0.1.0`. Storybook se publica en https://caravenas.github.io/pliego-ui/.
+- L-10 publicado (`e10826c`, 2026-10-13). **Falta verificar la instalación desde un proyecto vacío** con `@caravenas:registry` en su `.npmrc`: el token de `gh` no tiene `read:packages`.
+- **Siguiente:** verificar la instalación de 0.1.0 (L-10). Después quedan `Tooltip` (solo con un caso real), L-12 (PliegoStack) y L-13 (Design System), que se hacen fuera de este repositorio.
 
 | Id | Incremento | Estado | Commit |
 | --- | --- | --- | --- |
 | L-0 | Puesta en marcha local y remoto | hecho (Chris, 2026-10-13: remoto creado y `main` publicado) | |
-| L-1 | CI en GitHub Actions | CI verificado en verde; release falta un permiso de Chris | ver `git log` (`ci: add CI and release workflows`) |
+| L-1 | CI en GitHub Actions | hecho (CI y release verificados el 2026-10-13) | ver `git log` (`ci: add CI and release workflows`) |
 | L-2 | `Field` y `Select` | hecho | ver `git log` (`feat: add Field and Select`) |
 | L-3 | `SegmentedControl` | hecho | ver `git log` (`feat: add SegmentedControl`) |
 | L-4 | `OptionField` y `OptionCard` | hecho | ver `git log` (`feat: add OptionField and OptionCard`) |
@@ -33,7 +35,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-7 | `ResultList`, `ResultRow` y `HowPanel` | hecho | ver `git log` (`feat: add ResultList and HowPanel`) |
 | L-8 | `Notice` | hecho | ver `git log` (`feat: add Notice`) |
 | L-9 | Accesibilidad y regresión visual en CI | hecho en local (CI y Pages sin ejecutar) | ver `git log` (`test: add accessibility and visual regression checks`) |
-| L-10 | Primera publicación, 0.1.0 | pendiente | |
+| L-10 | Primera publicación, 0.1.0 | publicado (falta verificar la instalación desde un proyecto vacío) | `e10826c`, tag `v0.1.0` |
 | L-11 | Radix: `Drawer` (catálogo), `Tooltip`, `Toast` | parcial: `Drawer` y `Toast` hechos; `Tooltip` pendiente (solo con un caso real) | ver `git log` (`feat: add Drawer`, `feat: add Toast`) |
 | L-12 | Migrar PliegoStack a la librería | pendiente | |
 | L-13 | Re-sincronizar el Design System desde la librería | pendiente | |
@@ -497,7 +499,7 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 19. **Alineación de `SpecStep` (L-6).** Con `space-7` (28 px) el valor y el cuerpo quedan a 1,6 px a la derecha del título medido en Storybook (el número de dos dígitos en mono de 12 px más el hueco de 12 px suman 26,4 px). Es el valor de PliegoStack; si se quiere alineación exacta, la sangría debería salir del ancho del número y no de un paso de la escala.
 20. **`HowPanel` sin nota por defecto (L-7).** La nota «valores preliminares · confirmar con la imprenta» de PliegoStack no viaja con el componente: se pasa por `note`. Y solo con nota el panel no se pinta.
 21. **Borde del error de `Notice` (L-8).** `color-mix` al 30% de `color-danger-foreground` (ver el brief). Si se prefiere el filete izquierdo de `Field`, hay que unificar los dos errores.
-22. **Workflows de L-1 (resuelta en parte, 2026-10-13).** Tras el primer push: `ci.yml` pasa; `release.yml` genera la versión y falla solo en abrir el PR por un permiso del repositorio. Sigue sin probarse que `changesets/action@v1` publique en GitHub Packages con `GITHUB_TOKEN`. Verificar al crear el remoto (L-0) con un PR de prueba, y revisar si el paquete, siendo privado y con `access: restricted`, necesita permisos de paquete adicionales.
+22. **Workflows de L-1 (resuelta, 2026-10-13).** `ci.yml` pasa y `release.yml` abrió el PR de versión y publicó 0.1.0 con `GITHUB_TOKEN`. Hubo que activar «Allow GitHub Actions to create and approve pull requests» en el repositorio. Verificar al crear el remoto (L-0) con un PR de prueba, y revisar si el paquete, siendo privado y con `access: restricted`, necesita permisos de paquete adicionales.
 23. **`Drawer` no modal (L-11).** Decisión del agente, con la evidencia del origen (R-24 de PliegoStack pasó el catálogo de modal a panel). Con `modal={false}` Radix no atrapa el foco ni inerta la página; Escape, la entrada y el regreso del foco se implementan en el componente. Confirmar o pasar a modal.
 24. **Ancho del `Drawer` (L-11).** `min(100%, 30rem)` es un literal comentado: no hay equivalente en la escala. El panel es una capa fija en el borde derecho, no un bloque en el flujo como el `catalog-editor` de PliegoStack; ajustar si se quiere ese comportamiento.
 25. **Auditoría de dependencias (L-11).** Tras instalar Radix `npm` avisó de 28 vulnerabilidades en 528 paquetes (11 moderadas, 15 altas, 2 críticas). `npm audit --omit=dev` da 0: son de herramientas de desarrollo (Storybook, Vite, Vitest…), no de lo que se publica. Revisar con `npm audit` cuándo actualizar esas herramientas (decisión 5).
@@ -508,4 +510,4 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 30. **Capturas solo en local (L-9).** Las 48 referencias son de macOS (`*-darwin.png`) y las fuentes de Google se bloquean, así que se comparan con la pila de respaldo. `ci.yml` no las ejecuta: en Linux las referencias no existen y no serían comparables. Para activarlas hay que generar las de Linux (un workflow manual que suba el resultado, o Docker) y revisarlas una vez.
 31. **`SpecStep` y axe (L-9).** axe marcó `nested-interactive` (grave): el botón «···» estaba dentro del `<summary>`. Ahora el `<details>` va envuelto y el botón es hermano suyo, posado sobre el margen derecho del título. Cambia el marcado respecto a PliegoStack. Es una corrección de accesibilidad que PliegoStack arrastra.
 32. **Colisión con el addon `a11y` (L-9).** El addon corre axe dentro de la story y axe no admite dos ejecuciones a la vez; la prueba reintenta hasta 20 veces mientras el addon termina. Si Storybook cambia el addon, revisar `e2e/a11y.spec.ts`.
-33. **`pages.yml` (L-9).** Primera ejecución (2026-10-13): falla en `configure-pages` porque Pages no está habilitado. Escrito con `actions/configure-pages@v5`, `upload-pages-artifact@v3` y `deploy-pages@v4`. Un repositorio privado necesita un plan de GitHub que admita Pages; comprobar al crear el remoto.
+33. **`pages.yml` (L-9, resuelta, 2026-10-13).** Pages estaba sin habilitar; con Source: GitHub Actions el despliegue pasa y está en https://caravenas.github.io/pliego-ui/. Escrito con `actions/configure-pages@v5`, `upload-pages-artifact@v3` y `deploy-pages@v4`. Un repositorio privado necesita un plan de GitHub que admita Pages; comprobar al crear el remoto.

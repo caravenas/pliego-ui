@@ -15,12 +15,13 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 - L-6 cerrado: `SpecStep` (`<details>` numerado con valor en el estado cerrado y `open` controlado o no).
 - L-7 cerrado: `ResultList` y `ResultRow` (`<dl>` con `tabular-nums`) y `HowPanel`.
 - L-8 cerrado: `Notice` (note, preview, error, config) con rol según la variante. Con él están todos los componentes de la fase de diseño; lo que queda necesita a Chris o dependencias nuevas (ver L-9 en adelante).
-- **Siguiente: L-9**, que necesita aprobación por dependencias nuevas. L-1 espera al remoto de L-0.
+- L-1 escrito (`.github/workflows/ci.yml` y `release.yml`), pero **sin ejecutar nunca**: su aceptación (un PR en verde, el release sin publicar) necesita el remoto de L-0.
+- **Siguiente: L-9**, que necesita aprobación por dependencias nuevas.
 
 | Id | Incremento | Estado | Commit |
 | --- | --- | --- | --- |
 | L-0 | Puesta en marcha local y remoto | a medias (Chris) | |
-| L-1 | CI en GitHub Actions | pendiente (necesita el remoto) | |
+| L-1 | CI en GitHub Actions | escrito, sin verificar (necesita el remoto) | ver `git log` (`ci: add CI and release workflows`) |
 | L-2 | `Field` y `Select` | hecho | ver `git log` (`feat: add Field and Select`) |
 | L-3 | `SegmentedControl` | hecho | ver `git log` (`feat: add SegmentedControl`) |
 | L-4 | `OptionField` y `OptionCard` | hecho | ver `git log` (`feat: add OptionField and OptionCard`) |
@@ -423,3 +424,4 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 19. **Alineación de `SpecStep` (L-6).** Con `space-7` (28 px) el valor y el cuerpo quedan a 1,6 px a la derecha del título medido en Storybook (el número de dos dígitos en mono de 12 px más el hueco de 12 px suman 26,4 px). Es el valor de PliegoStack; si se quiere alineación exacta, la sangría debería salir del ancho del número y no de un paso de la escala.
 20. **`HowPanel` sin nota por defecto (L-7).** La nota «valores preliminares · confirmar con la imprenta» de PliegoStack no viaja con el componente: se pasa por `note`. Y solo con nota el panel no se pinta.
 21. **Borde del error de `Notice` (L-8).** `color-mix` al 30% de `color-danger-foreground` (ver el brief). Si se prefiere el filete izquierdo de `Field`, hay que unificar los dos errores.
+22. **Workflows sin probar (L-1).** `ci.yml` y `release.yml` se escribieron sin remoto: no se han ejecutado y no hay ninguna prueba de que `changesets/action@v1` publique en GitHub Packages con `GITHUB_TOKEN`. Verificar al crear el remoto (L-0) con un PR de prueba, y revisar si el paquete, siendo privado y con `access: restricted`, necesita permisos de paquete adicionales.

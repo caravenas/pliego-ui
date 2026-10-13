@@ -1,0 +1,167 @@
+.pui-option-card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-text-primary);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  cursor: pointer;
+  text-align: center;
+  transition: background var(--transition-fast);
+  outline: none;
+}
+
+/* Anillo propio, separado del borde, solo con teclado. */
+.pui-option-card:focus-visible {
+  outline: 2px solid var(--color-accent-ink);
+  outline-offset: 2px;
+}
+
+/* Una opción ancha se lee mejor con su dibujo al lado del texto. */
+.pui-option-card--row {
+  flex-direction: row;
+  gap: var(--space-3);
+  text-align: left;
+}
+
+/*
+ * El realce de puntero es solo para la que no está elegida: sobre la tarjeta ya
+ * rellena de tinta repintaba el fondo de blanco y dejaba el texto y el dibujo
+ * blancos encima, una tarjeta que desaparecía bajo el puntero.
+ */
+.pui-option-card:hover:not(:disabled):not(.pui-option-card--selected) {
+  background: var(--color-bg-card-hover);
+}
+
+/* La elegida se rellena de tinta; el dibujo la sigue porque va en currentColor. */
+.pui-option-card--selected {
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+}
+
+.pui-option-card:disabled {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+/*
+ * El dibujo es lo que significa la opción y se lleva el sitio: una caja de
+ * 34px de alto (la medida de PliegoStack, sin equivalente en la escala) para
+ * que opciones de proporciones distintas sigan alineadas en una fila.
+ */
+.pui-option-card__figure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+}
+
+.pui-option-card--row .pui-option-card__figure {
+  min-height: 0;
+  flex-shrink: 0;
+}
+
+.pui-option-card__text {
+  display: flex;
+  flex-direction: column;
+  /* 2px, el paso fino entre líneas del texto de una opción; la escala empieza en 4px. */
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.pui-option-card__name {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.pui-option-card__detail {
+  font-size: var(--text-xs);
+  font-style: italic;
+  line-height: 1.35;
+  opacity: 0.75;
+}
+
+/* Por qué no se puede elegir, dicho en la opción y no como error al elegirla. */
+.pui-option-card__reason {
+  font-size: var(--text-xs);
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--color-danger-foreground);
+}
+
+.pui-option-card:disabled .pui-option-card__reason {
+  color: var(--color-text-muted);
+}
+
+/* Dibujos para quien no tenga el suyo: toman el color de la tarjeta. */
+.pui-option-shape {
+  display: block;
+  border: 1px solid currentColor;
+}
+
+/*
+ * Una marca de escala: contorno hasta que es la opción en uso y entonces
+ * relleno, la misma forma de marcar lo elegido en todo el sistema.
+ */
+.pui-option-mark {
+  display: block;
+  width: 60%;
+  border: 1px solid var(--color-text-primary);
+}
+
+.pui-option-card--notch:hover .pui-option-mark {
+  background: var(--color-bg-card-hover);
+}
+
+.pui-option-card--notch.pui-option-card--selected .pui-option-mark {
+  background: var(--color-text-primary);
+}
+
+/* La marca: sin aspecto de tarjeta, porque se lee contra sus vecinas. */
+.pui-option-card--notch {
+  /* Invertida: la figura escrita primero se dibuja bajo el nombre y la marca se apoya en el eje. */
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  flex: 1;
+  gap: var(--space-1);
+  padding: 0 0 1px;
+  border: 0;
+  border-radius: 0;
+}
+
+.pui-option-card--notch:hover:not(:disabled),
+.pui-option-card--notch.pui-option-card--selected {
+  background: none;
+  color: var(--color-text-primary);
+}
+
+.pui-option-card--notch .pui-option-card__figure {
+  min-height: 0;
+  align-items: flex-end;
+  width: 100%;
+}
+
+.pui-option-card--notch .pui-option-card__name {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.pui-option-card--notch.pui-option-card--selected .pui-option-card__name {
+  font-weight: 700;
+  opacity: 1;
+}
+
+@media (pointer: coarse) {
+  .pui-option-card {
+    min-height: 44px;
+  }
+}

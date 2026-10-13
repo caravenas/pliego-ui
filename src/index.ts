@@ -18,5 +18,11 @@ export type { FieldProps } from './components/Field/Field';
 export { SegmentedControl } from './components/SegmentedControl/SegmentedControl';
 export type { SegmentedControlProps, SegmentedOption } from './components/SegmentedControl/SegmentedControl';
 
+export { OptionCard } from './components/OptionCard/OptionCard';
+export type { OptionCardProps } from './components/OptionCard/OptionCard';
+
+export { OptionField } from './components/OptionField/OptionField';
+export type { OptionFieldProps } from './components/OptionField/OptionField';
+
 export { tokenNames, cssVar, fontFamilies, typeStyles } from './tokens';
 export type { TokenName, FontFamily, TypeStyle } from './tokens';

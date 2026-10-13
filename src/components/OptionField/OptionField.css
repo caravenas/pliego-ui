@@ -1,0 +1,22 @@
+/*
+ * Un grupo de opciones, cada una dibujada a escala. Las columnas las decide el
+ * campo, porque lo que cabe en una fila depende de lo ancho que sea el dibujo:
+ * caben tres siluetas de página donde dos muestras de papel.
+ */
+.pui-option-group {
+  display: grid;
+  grid-template-columns: repeat(var(--option-columns, 3), minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+/*
+ * Un campo cuyas opciones son una magnitud a distintos tamaños se lee como una
+ * escala y no como una fila de tarjetas: las marcas se apoyan en un eje común,
+ * que es lo que hace comparables sus alturas.
+ */
+.pui-option-group--scale {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-text-primary);
+}

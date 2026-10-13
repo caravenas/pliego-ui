@@ -5,12 +5,13 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 ## Estado actual
 
 - Scaffold en `main` (`9db7d12`): Vite en modo librería, TS, Storybook 8.6, Vitest 3, Changesets y el pipeline de tokens.
-- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field` y `SegmentedControl`. 50 tests en verde, build y build de Storybook verificados (L-3, 2026-10-12).
+- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField` y `OptionCard`. 62 tests en verde, build y build de Storybook verificados (L-4, 2026-10-12).
 - Aún sin remoto en GitHub, sin CI y sin publicar.
 - L-0 está a medias (2026-10-12): las dependencias ya están instaladas en macOS y `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0. Falta limpiar los restos de git de la VM Linux (`.git/stale-*` y `tmp_obj_*`) y crear el remoto.
 - L-2 cerrado: `Field` (enlaza el control por `id`, error con `role="alert"`, nota al margen y nota de origen) y `Select` (desplegable nativo en cápsula, triángulo en `color-text-muted`).
 - L-3 cerrado: `SegmentedControl` con `tablist` (`tabs`) y `radiogroup` (`options`), un punto de tabulación, flechas, Inicio y Fin. Resuelve la decisión abierta 1 para este componente.
-- **Siguiente: L-4.** L-1 espera al remoto de L-0.
+- L-4 cerrado: `OptionField` (sobre `Field` con `group`) y `OptionCard` (botón con `aria-pressed`, rejilla y escala).
+- **Siguiente: L-5.** L-1 espera al remoto de L-0.
 
 | Id | Incremento | Estado | Commit |
 | --- | --- | --- | --- |
@@ -18,8 +19,8 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-1 | CI en GitHub Actions | pendiente (necesita el remoto) | |
 | L-2 | `Field` y `Select` | hecho | ver `git log` (`feat: add Field and Select`) |
 | L-3 | `SegmentedControl` | hecho | ver `git log` (`feat: add SegmentedControl`) |
-| L-4 | `OptionField` y `OptionCard` | **siguiente** | |
-| L-5 | `MeasureField` | pendiente | |
+| L-4 | `OptionField` y `OptionCard` | hecho | ver `git log` (`feat: add OptionField and OptionCard`) |
+| L-5 | `MeasureField` | **siguiente** | |
 | L-6 | `SpecStep` | pendiente | |
 | L-7 | `ResultList`, `ResultRow` y `HowPanel` | pendiente | |
 | L-8 | `Notice` | pendiente | |
@@ -158,14 +159,43 @@ Ninguna impide empezar.
 
 ## L-4 — `OptionField` y `OptionCard`
 
-Ver § OptionCard. Origen: `src/components/OptionGroup.tsx` y los selectores `.option-*` y `.option-card-notch`.
+Ver `docs/COMPONENTS.md` § OptionCard. Origen: `src/components/OptionGroup.tsx` y los selectores `.option-*` y `.grammage-notch` de PliegoStack.
 
-**Aceptación**:
-- API compatible con la de PliegoStack (mismos nombres de props), para que la migración sea un cambio de import.
-- `disabledReason` deshabilita la tarjeta y escribe la razón en ella.
-- El dibujo va con `aria-hidden` y en `currentColor`.
-- Variantes `card`, `notch` y `row`; `layout` `grid` y `scale`.
-- Tests: `aria-pressed`, deshabilitado con razón visible y `onSelect`.
+**Objetivo.**
+Que quien construye un formulario con pliego-ui tenga opciones dibujadas a escala, en rejilla de tarjetas o en una escala de marcas, con la misma API que ya usa PliegoStack para que migrar sea un cambio de import.
+
+**Alcance.**
+- `OptionField`, compuesto sobre `Field` con `group`: `label`, `id`, `marginalia`, `columns` (3 por defecto), `layout` (`grid` o `scale`), `fromCatalog`, `error`, `note` y `children`. `--option-columns` decide las columnas.
+- `OptionCard`: `name`, `detail`, `figure`, `selected`, `disabledReason`, `onSelect`, `row`, `ariaLabel` y `variant` (`card` o `notch`), con `forwardRef` y las props nativas del botón (`id`, `title`…) intactas.
+- Estados: elegida en tinta con el texto en `color-bg-primary`; apuntada en `color-bg-card-hover` y nunca sobre la elegida; deshabilitada con filete `color-border`, texto en muted y la razón escrita en la tarjeta.
+- Dos clases de ayuda para figuras sin dibujo propio: `pui-option-shape` (caja en `currentColor`) y `pui-option-mark` (la marca de la escala, que se rellena al elegirla).
+- Estilos con variables y clases `pui-` en `OptionCard.css` y `OptionField.css`; stories (rejilla, razón de deshabilitada, error, escala) y tests; export con tipos y un changeset.
+
+**No objetivos.**
+- Teclado propio del grupo (flechas, un solo punto de tabulación) o `role="radio"`: ver la decisión abierta 1.
+- Figuras concretas de PliegoStack (siluetas de página, muestras de papel): son del consumidor.
+- Cambiar `Field`, `SegmentedControl`, `Button`, `Input` o `Select`.
+- Tokens nuevos, dependencias nuevas o tema oscuro.
+
+**Aceptación.**
+1. Un test comprueba que `OptionCard` es un `<button type="button">` con `aria-pressed` que llama a `onSelect`, con su clase de elegida cuando `selected`.
+2. Un test comprueba que `disabledReason` deshabilita la tarjeta, escribe la razón en ella y no llama a `onSelect` al hacer clic.
+3. Un test comprueba que `figure` va con `aria-hidden`, que `ariaLabel` sustituye al nombre anunciado y que la ref y las props nativas pasan.
+4. Un test comprueba que `OptionField` se compone sobre `Field` con `group` (etiqueta `<span id="${id}-label">`, grupo nombrado), que `columns` fija `--option-columns`, que `layout="scale"` y `fromCatalog` ponen sus clases, y que el error y la nota se enlazan al grupo.
+5. Un test lee `OptionCard.css` y `OptionField.css` y comprueba que no hay colores, tamaños ni radios literales fuera de las excepciones comentadas, y que el realce de puntero excluye a la elegida.
+6. Se revisa a mano en Storybook (`npm run dev`) con teclado y `pointer: coarse` emulado: rejilla y escala, elegida en tinta, apuntada que aclara y nunca sobre la elegida, deshabilitada con su razón, anillo de foco de 2 px y estados legibles por palabras.
+7. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, `src/index.ts` exporta `OptionField`, `OptionCard` y sus tipos, y no hay dependencias nuevas.
+8. Hay un changeset del cambio, y `docs/PLAN.md` actualiza la tabla de estado y la sección «Estado actual».
+
+**Rollback.** Revertir el único commit del incremento.
+
+**Decisiones ya tomadas.**
+Mandan `docs/COMPONENTS.md` y el Design System de claude.ai (Chris, 2026-10-12).
+La siguiente la toma el agente al ejecutar el objetivo de completar el plan, y queda registrada en «Decisiones abiertas» para que Chris la confirme o la cambie:
+- `OptionCard` mantiene `aria-pressed` y no pasa a `radio`: la API es la de PliegoStack, no promete flechas, y cada opción se alcanza con Tab. Pasar a `radiogroup` es compatible hacia delante si se decide, porque el teclado ya existe en `SegmentedControl`.
+
+**Preguntas abiertas.**
+Ninguna impide empezar.
 
 ## L-5 — `MeasureField`
 
@@ -237,7 +267,7 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 
 ## Decisiones abiertas
 
-1. **Radiogroup frente a `aria-pressed`.** Resuelta para `SegmentedControl` en L-3 (2026-10-12, Chris): `tablist` y `radiogroup` con tabindex móvil. Sigue abierta para `OptionCard` y `OptionField`, que se deciden en el brief de L-4 y pueden reutilizar `useRovingSelection`.
+1. **Radiogroup frente a `aria-pressed`.** Resuelta para `SegmentedControl` en L-3 (2026-10-12, Chris): `tablist` y `radiogroup` con tabindex móvil. En `OptionCard` (L-4) se mantuvo `aria-pressed`; ver la 14.
 2. **Colores de estado sin token.** `.catalog-persistence` pinta su punto con `#15803D` (guardado) y `#B45309` (solo sesión), literales. Propuesta: `color-success` y `color-warning` en `tokens.json`, con su contraste medido.
 3. **Botón en cápsula o con `radius-md`.** El rediseño dice que «todo control de entrada» va en cápsula, pero los botones del catálogo usan `radius-md`. La librería sigue el código (`radius-md`); confirmar que es intencional.
 4. **Tema oscuro.** No existe. El formato lo admite (`color.themes`); decidir si se quiere antes de 1.0.
@@ -250,3 +280,5 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 11. **Estilo de texto de `options` (L-3).** `SegmentedControl` usa `central-tab` (mayúsculas, 0,16 em) también en `kind="options"`. Confirmar si formato y proporción deben llevar ese estilo o el de `form-input`.
 12. **Teclas verticales (L-3).** `options` responde a izquierda y derecha, Inicio y Fin, como pedía el brief; un `radiogroup` nativo también responde a arriba y abajo. Añadirlas si se quiere paridad con el nativo.
 13. **`pointer: coarse` sin emulación (L-3).** Igual que en L-2: los 44 px solo están en el CSS y no se midieron en el navegador.
+14. **`OptionCard` con `aria-pressed` (L-4).** Decidido por el agente al ejecutar el objetivo de completar el plan, sin confirmación de Chris: mantiene la API y la semántica de PliegoStack. Confirmar o pasar a `radio` con el teclado de `SegmentedControl`. Los 44 px con `pointer: coarse` solo están en el CSS (no se emuló).
+15. **Excepciones de tamaño de `OptionCard` (L-4).** La caja del dibujo (34px) y el paso fino del texto (2px) siguen literales y comentados, como en PliegoStack: la escala no tiene equivalente.

@@ -5,7 +5,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 ## Estado actual
 
 - Scaffold en `main` (`9db7d12`): Vite en modo librería, TS, Storybook 8.6, Vitest 3, Changesets y el pipeline de tokens.
-- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `OptionCard`, `MeasureField`, `MeasureGrid` y `SpecStep`. 86 tests en verde, build y build de Storybook verificados (L-6, 2026-10-12).
+- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `OptionCard`, `MeasureField`, `MeasureGrid`, `SpecStep`, `ResultList`, `ResultRow` y `HowPanel`. 98 tests en verde, build y build de Storybook verificados (L-7, 2026-10-12).
 - Aún sin remoto en GitHub, sin CI y sin publicar.
 - L-0 está a medias (2026-10-12): las dependencias ya están instaladas en macOS y `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0. Falta limpiar los restos de git de la VM Linux (`.git/stale-*` y `tmp_obj_*`) y crear el remoto.
 - L-2 cerrado: `Field` (enlaza el control por `id`, error con `role="alert"`, nota al margen y nota de origen) y `Select` (desplegable nativo en cápsula, triángulo en `color-text-muted`).
@@ -13,7 +13,8 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 - L-4 cerrado: `OptionField` (sobre `Field` con `group`) y `OptionCard` (botón con `aria-pressed`, rejilla y escala).
 - L-5 cerrado: `MeasureField` y `MeasureGrid` (escribir, flechas, arrastre con captura de puntero).
 - L-6 cerrado: `SpecStep` (`<details>` numerado con valor en el estado cerrado y `open` controlado o no).
-- **Siguiente: L-7.** L-1 espera al remoto de L-0.
+- L-7 cerrado: `ResultList` y `ResultRow` (`<dl>` con `tabular-nums`) y `HowPanel`.
+- **Siguiente: L-8.** L-1 espera al remoto de L-0.
 
 | Id | Incremento | Estado | Commit |
 | --- | --- | --- | --- |
@@ -24,8 +25,8 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-4 | `OptionField` y `OptionCard` | hecho | ver `git log` (`feat: add OptionField and OptionCard`) |
 | L-5 | `MeasureField` | hecho | ver `git log` (`feat: add MeasureField`) |
 | L-6 | `SpecStep` | hecho | ver `git log` (`feat: add SpecStep`) |
-| L-7 | `ResultList`, `ResultRow` y `HowPanel` | **siguiente** | |
-| L-8 | `Notice` | pendiente | |
+| L-7 | `ResultList`, `ResultRow` y `HowPanel` | hecho | ver `git log` (`feat: add ResultList and HowPanel`) |
+| L-8 | `Notice` | **siguiente** | |
 | L-9 | Accesibilidad y regresión visual en CI | pendiente | |
 | L-10 | Primera publicación, 0.1.0 | pendiente | |
 | L-11 | Radix: `Drawer` (catálogo), `Tooltip`, `Toast` | pendiente | |
@@ -284,9 +285,43 @@ Ninguna impide empezar.
 
 ## L-7 — `ResultList`, `ResultRow` y `HowPanel`
 
-Ver § ResultList. **Es una `<dl>`**, como en PliegoStack, no una `<ul>`: los previews del Design System la dibujan como `<ul>` y hay que corregirlos en L-13.
+Ver `docs/COMPONENTS.md` § ResultList. **Es una `<dl>`**, como en PliegoStack, no una `<ul>`: los previews del Design System la dibujan como `<ul>` y hay que corregirlos en L-13. Origen: `src/components/ResultList.tsx`, `HowItIsCalculated.tsx` y los selectores `.result-*`, `.stat-*` y `.how-panel*`.
 
-**Aceptación**: lista de pares `dt`/`dd`, cifras con `tabular-nums`, unidad en `stat-unit` y punteado entre filas.
+**Objetivo.**
+Que quien muestra resultados calculados tenga una lista de cifras con su nombre y su unidad, alineables en columna, y el panel que dice de qué están hechas, sin repetir el marcado ni las clases en cada proyecto.
+
+**Alcance.**
+- `ResultList` (`<dl>`) y `ResultRow` (`label`, `unit?`, `children`; `<div>` con `dt` y `dd`), con `forwardRef` y las props nativas.
+- Cifras con `tabular-nums` y sin salto de línea, unidad en `stat-unit` junto al número, filas con punteado de `color-border`.
+- `HowPanel` con `title` («Cómo se calcula» por defecto), `formulas: ReactNode[]` (una por línea), `children` (texto explicativo) y `note`. No pinta nada si no hay fórmulas ni texto.
+- Estilos con variables y clases `pui-`, y los estilos de texto `stat-label`, `stat-value`, `stat-unit` y `mono-note` de los tokens.
+- Stories, tests, export con tipos y un changeset.
+
+**No objetivos.**
+- Calcular los resultados, formatear cifras o conocer sus unidades: el consumidor aporta el texto.
+- Una nota por defecto en `HowPanel` («valores preliminares…»): es copia de PliegoStack y el consumidor la pasa por `note`.
+- Un plegable para `HowPanel`: va abierto, como en el Design System.
+- Cambiar los demás componentes; tokens o dependencias nuevas; tema oscuro.
+
+**Aceptación.**
+1. Un test comprueba que `ResultList` es una `<dl>` cuyas filas son `div` con un `dt` y un `dd`, con los roles `term` y `definition`.
+2. Un test comprueba que la unidad va en el `dd`, junto a la cifra, y que sin unidad no queda nodo.
+3. Un test comprueba que la ref y las props nativas pasan en `ResultList`, `ResultRow` y `HowPanel`.
+4. Un test comprueba que `HowPanel` es una región con el título por defecto y un `h3`, que cada fórmula va en su línea, que pinta `children` y la nota, y que sin fórmulas ni texto no pinta nada, ni siquiera la nota.
+5. Un test lee `ResultList.css` y `HowPanel.css` y comprueba que no hay colores, tamaños ni radios literales, y que hay `tabular-nums`, `nowrap` y el punteado de `color-border`.
+6. Se revisa a mano en Storybook (`npm run dev`): las cifras se alinean a la derecha en columna, la unidad se ve pequeña y en muted, el punteado entre filas y el filete de tinta del panel.
+7. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, `src/index.ts` exporta `ResultList`, `ResultRow`, `HowPanel` y sus tipos, y no hay dependencias nuevas.
+8. Hay un changeset del cambio, y `docs/PLAN.md` actualiza la tabla de estado y la sección «Estado actual».
+
+**Rollback.** Revertir el único commit del incremento.
+
+**Decisiones ya tomadas.**
+Mandan `docs/COMPONENTS.md` y el Design System de claude.ai (Chris, 2026-10-12).
+La siguiente la toma el agente al ejecutar el objetivo de completar el plan, y queda en «Decisiones abiertas»:
+- `HowPanel` devuelve `null` también cuando solo tiene nota, como `HowItIsCalculated` cuando no hay nada que explicar: una nota sin nada que calificar no se pinta.
+
+**Preguntas abiertas.**
+Ninguna impide empezar.
 
 ## L-8 — `Notice`
 
@@ -351,3 +386,4 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 17. **Alineación de `MeasureField` (L-5).** El valor se alinea al centro dentro de 40 px de alto mínimo, no por la línea base como en PliegoStack: puede moverse unos píxeles la cifra respecto al origen. Comparar con el original y ajustar si molesta.
 18. **Estado de `SpecStep` (L-6).** El componente lleva el estado y evita el cambio nativo del `<details>` para que `open` controle de verdad. Si se prefiere el comportamiento nativo con `onToggle`, el control deja de ser estricto. El resumen tiene el área de puntero de 40/44 px; los 44 px solo están en el CSS.
 19. **Alineación de `SpecStep` (L-6).** Con `space-7` (28 px) el valor y el cuerpo quedan a 1,6 px a la derecha del título medido en Storybook (el número de dos dígitos en mono de 12 px más el hueco de 12 px suman 26,4 px). Es el valor de PliegoStack; si se quiere alineación exacta, la sangría debería salir del ancho del número y no de un paso de la escala.
+20. **`HowPanel` sin nota por defecto (L-7).** La nota «valores preliminares · confirmar con la imprenta» de PliegoStack no viaja con el componente: se pasa por `note`. Y solo con nota el panel no se pinta.

@@ -30,5 +30,11 @@ export type { MeasureFieldProps, MeasureGridProps } from './components/MeasureFi
 export { SpecStep } from './components/SpecStep/SpecStep';
 export type { SpecStepProps } from './components/SpecStep/SpecStep';
 
+export { ResultList, ResultRow } from './components/ResultList/ResultList';
+export type { ResultListProps, ResultRowProps } from './components/ResultList/ResultList';
+
+export { HowPanel } from './components/HowPanel/HowPanel';
+export type { HowPanelProps } from './components/HowPanel/HowPanel';
+
 export { tokenNames, cssVar, fontFamilies, typeStyles } from './tokens';
 export type { TokenName, FontFamily, TypeStyle } from './tokens';

@@ -20,8 +20,8 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 - L-11, parcial: `Drawer` no modal sobre Radix Dialog y `Toast` sobre Radix Toast (dependencias autorizadas por Chris el 2026-10-13). Falta `Tooltip`, que solo se hace si aparece un caso real.
 - L-9 cerrado en local: axe sobre las 48 stories (`npm run test:a11y`) y capturas comparadas (`npm run test:visual`). En CI solo corre axe; `pages.yml` está escrito y sin ejecutar.
 - L-1 cerrado (2026-10-13): con los dos permisos activados, el release abrió el PR de versión y, al mergearlo, publicó `@caravenas/pliego-ui@0.1.0` en GitHub Packages con `GITHUB_TOKEN` y creó el tag `v0.1.0`. Storybook se publica en https://caravenas.github.io/pliego-ui/.
-- L-10 publicado (`e10826c`, 2026-10-13). **Falta verificar la instalación desde un proyecto vacío** con `@caravenas:registry` en su `.npmrc`: el token de `gh` no tiene `read:packages`.
-- **Siguiente:** verificar la instalación de 0.1.0 (L-10). Después quedan `Tooltip` (solo con un caso real), L-12 (PliegoStack) y L-13 (Design System), que se hacen fuera de este repositorio.
+- L-10 cerrado (`e10826c`, 2026-10-13): `@caravenas/pliego-ui@0.1.0` se instala desde un proyecto vacío con `@caravenas:registry` en su `.npmrc`, trae `@radix-ui/react-dialog` y `react-toast` como dependencias, exporta los 18 componentes y `./styles.css` y `./tokens.json` resuelven.
+- **Siguiente:** quedan `Tooltip` (solo con un caso real), L-12 (PliegoStack) y L-13 (Design System), que se hacen fuera de este repositorio.
 
 | Id | Incremento | Estado | Commit |
 | --- | --- | --- | --- |
@@ -35,7 +35,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-7 | `ResultList`, `ResultRow` y `HowPanel` | hecho | ver `git log` (`feat: add ResultList and HowPanel`) |
 | L-8 | `Notice` | hecho | ver `git log` (`feat: add Notice`) |
 | L-9 | Accesibilidad y regresión visual en CI | hecho en local (CI y Pages sin ejecutar) | ver `git log` (`test: add accessibility and visual regression checks`) |
-| L-10 | Primera publicación, 0.1.0 | publicado (falta verificar la instalación desde un proyecto vacío) | `e10826c`, tag `v0.1.0` |
+| L-10 | Primera publicación, 0.1.0 | hecho (publicado e instalado desde un proyecto vacío, 2026-10-13) | `e10826c`, tag `v0.1.0` |
 | L-11 | Radix: `Drawer` (catálogo), `Tooltip`, `Toast` | parcial: `Drawer` y `Toast` hechos; `Tooltip` pendiente (solo con un caso real) | ver `git log` (`feat: add Drawer`, `feat: add Toast`) |
 | L-12 | Migrar PliegoStack a la librería | pendiente | |
 | L-13 | Re-sincronizar el Design System desde la librería | pendiente | |

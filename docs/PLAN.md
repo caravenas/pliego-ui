@@ -5,17 +5,18 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 ## Estado actual
 
 - Scaffold en `main` (`9db7d12`): Vite en modo librería, TS, Storybook 8.6, Vitest 3, Changesets y el pipeline de tokens.
-- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge` e `Input`. 21 tests en verde, build y build de Storybook verificados.
+- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select` y `Field`. 36 tests en verde, build y build de Storybook verificados (L-2, 2026-10-12).
 - Aún sin remoto en GitHub, sin CI y sin publicar.
 - L-0 está a medias (2026-10-12): las dependencias ya están instaladas en macOS y `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0. Falta limpiar los restos de git de la VM Linux (`.git/stale-*` y `tmp_obj_*`) y crear el remoto.
-- **Siguiente: L-2**, que no necesita el remoto y es el piloto de la entrada estándar de tareas. L-1 espera al remoto de L-0.
+- L-2 cerrado: `Field` (enlaza el control por `id`, error con `role="alert"`, nota al margen y nota de origen) y `Select` (desplegable nativo en cápsula, triángulo en `color-text-muted`).
+- **Siguiente: L-3.** L-1 espera al remoto de L-0.
 
 | Id | Incremento | Estado | Commit |
 | --- | --- | --- | --- |
 | L-0 | Puesta en marcha local y remoto | a medias (Chris) | |
 | L-1 | CI en GitHub Actions | pendiente (necesita el remoto) | |
-| L-2 | `Field` y `Select` | **siguiente** | |
-| L-3 | `SegmentedControl` | pendiente | |
+| L-2 | `Field` y `Select` | hecho | ver `git log` (`feat: add Field and Select`) |
+| L-3 | `SegmentedControl` | **siguiente** | |
 | L-4 | `OptionField` y `OptionCard` | pendiente | |
 | L-5 | `MeasureField` | pendiente | |
 | L-6 | `SpecStep` | pendiente | |
@@ -203,3 +204,6 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 5. **Versiones.** Se fijaron las combinaciones probadas en PliegoStack (Vite 6, React 18 en desarrollo, TS 5.6, Storybook 8.6), más Vitest 3. Ya hay versiones mayores (Vite 8, Storybook 10, TS 7). Subir en un incremento propio, no mezclado.
 6. **React 19.** `peerDependencies` lo admite, pero los tests corren en 18. Añadir una matriz 18/19 en CI cuando haya consumidor en 19.
 7. **El `Drawer` modal o no** (ver L-11).
+8. **Tratamiento del error de `Field` (L-2).** El origen pintaba el error con un borde `rgba(244, 63, 94, 0.3)`, literal que el proyecto prohíbe. Chris aprobó (2026-10-12) texto y filete izquierdo de 2 px en `color-danger-foreground`, sin tokens nuevos. Falta contrastarlo con la nota de uso de ese token en el Design System.
+9. **Margen derecho de `Select` (L-2).** Los 36 px salen de `calc(var(--space-3) + var(--space-6))` y la posición del triángulo de `var(--space-3)`, para no dejar literales. Los pesos de 1 px (borde) y 2 px (anillo y filete) se aceptan como literales, igual que en `Input`. Si el sistema prefiere un token de «margen de control», se añade en un incremento propio.
+10. **`pointer: coarse` sin emulación (L-2).** La verificación manual midió 40 px de alto, 36 px de padding, foco de 2 px con 2 px de separación y la marginalia pegada a la derecha. Los 44 px con `pointer: coarse` solo están en el CSS: no se pudo emular en el navegador.

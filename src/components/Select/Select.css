@@ -1,0 +1,46 @@
+.pui-select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  /*
+   * 36px de margen derecho (12px del triángulo + 12px a cada lado) para que el
+   * texto nunca pise la flecha. Sale de dos pasos de la escala: 0,75rem + 1,5rem.
+   */
+  padding: var(--space-2) calc(var(--space-3) + var(--space-6)) var(--space-2) var(--space-4);
+  border: 1px solid var(--color-text-primary);
+  border-radius: 9999px;
+  /*
+   * El triángulo es un data-URI y no puede leer variables: su relleno es el
+   * valor de color-text-muted (#5b6b82), no el #94a3b8 de origen, que daba
+   * 2,6:1 y una flecha de control pide 3:1. Un test lo ata a tokens.json.
+   * Sin fondo de color: el foco es solo el anillo.
+   */
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235b6b82' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  appearance: none;
+  cursor: pointer;
+  outline: none;
+}
+
+/* Anillo propio, separado del borde que ya se ve, solo con teclado. */
+.pui-select:focus-visible {
+  outline: 2px solid var(--color-accent-ink);
+  outline-offset: 2px;
+}
+
+.pui-select:disabled {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+@media (pointer: coarse) {
+  .pui-select {
+    min-height: 44px;
+  }
+}

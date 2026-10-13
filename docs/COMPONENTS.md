@@ -69,8 +69,9 @@ interface SegmentedControlProps<V extends string> {
 - Se dibuja como un rectángulo recortado: borde de tinta en el grupo, costura `border-right` entre segmentos y ninguna en el último.
 - 40 px de alto mínimo. Texto con el estilo `central-tab`.
 - El activo se rellena de tinta; el apuntado que no está activo pasa a `color-bg-card-hover`.
-- `tabs`: `role="tablist"`, flechas izquierda y derecha, Inicio y Fin.
-- `options`: ver la decisión abierta 1 del plan.
+- `tabs`: `role="tablist"`, un solo punto de tabulación, flechas izquierda y derecha con vuelta, Inicio y Fin; la flecha selecciona al mover. No pinta los paneles.
+- `options`: `role="radiogroup"` con `role="radio"` y `aria-checked`, con el mismo teclado.
+- `id` opcional: da a cada segmento el id `${id}-${value}`. Los segmentos `disabled` se saltan al navegar.
 
 ## OptionField / OptionCard (L-4)
 

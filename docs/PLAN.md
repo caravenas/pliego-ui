@@ -5,19 +5,20 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 ## Estado actual
 
 - Scaffold en `main` (`9db7d12`): Vite en modo librería, TS, Storybook 8.6, Vitest 3, Changesets y el pipeline de tokens.
-- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select` y `Field`. 36 tests en verde, build y build de Storybook verificados (L-2, 2026-10-12).
+- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field` y `SegmentedControl`. 50 tests en verde, build y build de Storybook verificados (L-3, 2026-10-12).
 - Aún sin remoto en GitHub, sin CI y sin publicar.
 - L-0 está a medias (2026-10-12): las dependencias ya están instaladas en macOS y `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0. Falta limpiar los restos de git de la VM Linux (`.git/stale-*` y `tmp_obj_*`) y crear el remoto.
 - L-2 cerrado: `Field` (enlaza el control por `id`, error con `role="alert"`, nota al margen y nota de origen) y `Select` (desplegable nativo en cápsula, triángulo en `color-text-muted`).
-- **Siguiente: L-3.** L-1 espera al remoto de L-0.
+- L-3 cerrado: `SegmentedControl` con `tablist` (`tabs`) y `radiogroup` (`options`), un punto de tabulación, flechas, Inicio y Fin. Resuelve la decisión abierta 1 para este componente.
+- **Siguiente: L-4.** L-1 espera al remoto de L-0.
 
 | Id | Incremento | Estado | Commit |
 | --- | --- | --- | --- |
 | L-0 | Puesta en marcha local y remoto | a medias (Chris) | |
 | L-1 | CI en GitHub Actions | pendiente (necesita el remoto) | |
 | L-2 | `Field` y `Select` | hecho | ver `git log` (`feat: add Field and Select`) |
-| L-3 | `SegmentedControl` | **siguiente** | |
-| L-4 | `OptionField` y `OptionCard` | pendiente | |
+| L-3 | `SegmentedControl` | hecho | ver `git log` (`feat: add SegmentedControl`) |
+| L-4 | `OptionField` y `OptionCard` | **siguiente** | |
 | L-5 | `MeasureField` | pendiente | |
 | L-6 | `SpecStep` | pendiente | |
 | L-7 | `ResultList`, `ResultRow` y `HowPanel` | pendiente | |
@@ -236,7 +237,7 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 
 ## Decisiones abiertas
 
-1. **Radiogroup frente a `aria-pressed`.** PliegoStack usa botones con `aria-pressed` en `OptionCard` y en los segmentos, porque un `radiogroup` promete un solo punto de tabulación y flechas, y ese trabajo de accesibilidad estaba congelado. En una librería ese trabajo se hace una vez y sirve a todos. ¿Implementar `radiogroup` con tabindex móvil en L-3/L-4, o mantener `aria-pressed` por compatibilidad?
+1. **Radiogroup frente a `aria-pressed`.** Resuelta para `SegmentedControl` en L-3 (2026-10-12, Chris): `tablist` y `radiogroup` con tabindex móvil. Sigue abierta para `OptionCard` y `OptionField`, que se deciden en el brief de L-4 y pueden reutilizar `useRovingSelection`.
 2. **Colores de estado sin token.** `.catalog-persistence` pinta su punto con `#15803D` (guardado) y `#B45309` (solo sesión), literales. Propuesta: `color-success` y `color-warning` en `tokens.json`, con su contraste medido.
 3. **Botón en cápsula o con `radius-md`.** El rediseño dice que «todo control de entrada» va en cápsula, pero los botones del catálogo usan `radius-md`. La librería sigue el código (`radius-md`); confirmar que es intencional.
 4. **Tema oscuro.** No existe. El formato lo admite (`color.themes`); decidir si se quiere antes de 1.0.
@@ -246,3 +247,6 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 8. **Tratamiento del error de `Field` (L-2).** El origen pintaba el error con un borde `rgba(244, 63, 94, 0.3)`, literal que el proyecto prohíbe. Chris aprobó (2026-10-12) texto y filete izquierdo de 2 px en `color-danger-foreground`, sin tokens nuevos. Falta contrastarlo con la nota de uso de ese token en el Design System.
 9. **Margen derecho de `Select` (L-2).** Los 36 px salen de `calc(var(--space-3) + var(--space-6))` y la posición del triángulo de `var(--space-3)`, para no dejar literales. Los pesos de 1 px (borde) y 2 px (anillo y filete) se aceptan como literales, igual que en `Input`. Si el sistema prefiere un token de «margen de control», se añade en un incremento propio.
 10. **`pointer: coarse` sin emulación (L-2).** La verificación manual midió 40 px de alto, 36 px de padding, foco de 2 px con 2 px de separación y la marginalia pegada a la derecha. Los 44 px con `pointer: coarse` solo están en el CSS: no se pudo emular en el navegador.
+11. **Estilo de texto de `options` (L-3).** `SegmentedControl` usa `central-tab` (mayúsculas, 0,16 em) también en `kind="options"`. Confirmar si formato y proporción deben llevar ese estilo o el de `form-input`.
+12. **Teclas verticales (L-3).** `options` responde a izquierda y derecha, Inicio y Fin, como pedía el brief; un `radiogroup` nativo también responde a arriba y abajo. Añadirlas si se quiere paridad con el nativo.
+13. **`pointer: coarse` sin emulación (L-3).** Igual que en L-2: los 44 px solo están en el CSS y no se midieron en el navegador.

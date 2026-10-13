@@ -1,0 +1,56 @@
+.pui-segmented {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  border: 1px solid var(--color-text-primary);
+}
+
+.pui-segmented__segment {
+  box-sizing: border-box;
+  /* El área de puntero antes que la palabra: 40px es el mínimo del sistema. */
+  min-height: 40px;
+  padding: var(--space-2) var(--space-5);
+  border: 0;
+  border-right: 1px solid var(--color-text-primary);
+  background: transparent;
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  outline: none;
+}
+
+/* El borde del grupo ya dibuja la última costura. */
+.pui-segmented__segment:last-child {
+  border-right: 0;
+}
+
+/* El realce de puntero nunca se aplica al segmento elegido. */
+.pui-segmented__segment:hover:not(.pui-segmented__segment--selected):not(:disabled) {
+  background: var(--color-bg-card-hover);
+}
+
+.pui-segmented__segment--selected {
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+}
+
+/*
+ * Anillo propio, separado del borde, solo con teclado. Sube de capa para que
+ * no lo tape el segmento vecino, que se pinta después.
+ */
+.pui-segmented__segment:focus-visible {
+  position: relative;
+  outline: 2px solid var(--color-accent-ink);
+  outline-offset: 2px;
+}
+
+.pui-segmented__segment:disabled {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+@media (pointer: coarse) {
+  .pui-segmented__segment {
+    min-height: 44px;
+  }
+}

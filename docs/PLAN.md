@@ -5,14 +5,15 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 ## Estado actual
 
 - Scaffold en `main` (`9db7d12`): Vite en modo librería, TS, Storybook 8.6, Vitest 3, Changesets y el pipeline de tokens.
-- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `OptionCard`, `MeasureField` y `MeasureGrid`. 77 tests en verde, build y build de Storybook verificados (L-5, 2026-10-12).
+- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `OptionCard`, `MeasureField`, `MeasureGrid` y `SpecStep`. 86 tests en verde, build y build de Storybook verificados (L-6, 2026-10-12).
 - Aún sin remoto en GitHub, sin CI y sin publicar.
 - L-0 está a medias (2026-10-12): las dependencias ya están instaladas en macOS y `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0. Falta limpiar los restos de git de la VM Linux (`.git/stale-*` y `tmp_obj_*`) y crear el remoto.
 - L-2 cerrado: `Field` (enlaza el control por `id`, error con `role="alert"`, nota al margen y nota de origen) y `Select` (desplegable nativo en cápsula, triángulo en `color-text-muted`).
 - L-3 cerrado: `SegmentedControl` con `tablist` (`tabs`) y `radiogroup` (`options`), un punto de tabulación, flechas, Inicio y Fin. Resuelve la decisión abierta 1 para este componente.
 - L-4 cerrado: `OptionField` (sobre `Field` con `group`) y `OptionCard` (botón con `aria-pressed`, rejilla y escala).
 - L-5 cerrado: `MeasureField` y `MeasureGrid` (escribir, flechas, arrastre con captura de puntero).
-- **Siguiente: L-6.** L-1 espera al remoto de L-0.
+- L-6 cerrado: `SpecStep` (`<details>` numerado con valor en el estado cerrado y `open` controlado o no).
+- **Siguiente: L-7.** L-1 espera al remoto de L-0.
 
 | Id | Incremento | Estado | Commit |
 | --- | --- | --- | --- |
@@ -22,8 +23,8 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-3 | `SegmentedControl` | hecho | ver `git log` (`feat: add SegmentedControl`) |
 | L-4 | `OptionField` y `OptionCard` | hecho | ver `git log` (`feat: add OptionField and OptionCard`) |
 | L-5 | `MeasureField` | hecho | ver `git log` (`feat: add MeasureField`) |
-| L-6 | `SpecStep` | **siguiente** | |
-| L-7 | `ResultList`, `ResultRow` y `HowPanel` | pendiente | |
+| L-6 | `SpecStep` | hecho | ver `git log` (`feat: add SpecStep`) |
+| L-7 | `ResultList`, `ResultRow` y `HowPanel` | **siguiente** | |
 | L-8 | `Notice` | pendiente | |
 | L-9 | Accesibilidad y regresión visual en CI | pendiente | |
 | L-10 | Primera publicación, 0.1.0 | pendiente | |
@@ -243,12 +244,43 @@ Ninguna impide empezar.
 
 ## L-6 — `SpecStep`
 
-Ver § SpecStep. Un `<details>` numerado con título, botón de opciones (`···`) y resumen.
+Ver `docs/COMPONENTS.md` § SpecStep. Origen: `src/components/SpecSteps.tsx`, `StepOptions.tsx` y los selectores `.spec-step*` y `.step-options` de PliegoStack.
 
-**Aceptación**:
-- La sangría usa `space-7`, que ahora existe; comprobar en Storybook que el valor y el cuerpo se alinean bajo el título.
-- El valor se oculta con el paso abierto.
-- `open` funciona controlado y no controlado.
+**Objetivo.**
+Que quien construye una ficha técnica por pasos tenga un paso numerado que, cerrado, sigue diciendo el valor que tiene, para que la ficha entera se lea de un vistazo y solo se abra donde hay algo que cambiar.
+
+**Alcance.**
+- `SpecStep` con la API de `docs/COMPONENTS.md`: `number`, `title`, `summary`, `onOptions`, `optionsLabel`, `open`, `defaultOpen`, `onOpenChange` y `children`; `forwardRef` al `<details>`.
+- `<details>` con el estado llevado por el componente: `open` controlado y `defaultOpen` no controlado, y un clic solo pide el cambio.
+- El resumen va dentro del `<summary>`, en su línea (`flex: 1 0 100%`), y se oculta con el paso abierto. Valor y cuerpo sangrados `space-7`.
+- El triángulo de Safari se quita; el botón «···» mide 40 px de alto (44 con puntero grueso) y su clic no abre ni cierra el paso.
+- Estilos con variables y clases `pui-`, stories (cerrado, abierto, título largo, controlado), tests, export con tipos y un changeset.
+
+**No objetivos.**
+- Qué contiene cada paso, el catálogo al que lleva «···» o el estado de apertura de la ficha entera: lo decide el consumidor.
+- Un acordeón exclusivo (abrir uno no cierra los demás).
+- Nivel de encabezado configurable: el título es un `h2`, como en PliegoStack.
+- Cambiar los demás componentes; tokens o dependencias nuevas; tema oscuro.
+
+**Aceptación.**
+1. Un test comprueba que `SpecStep` es un `<details>` con el número a dos dígitos, el título como `h2`, el resumen dentro del `<summary>` y el cuerpo, y que arranca cerrado salvo `defaultOpen`.
+2. Un test comprueba el modo no controlado: un clic en el `<summary>` alterna `open` y llama a `onOpenChange` con el valor nuevo.
+3. Un test comprueba el modo controlado: sigue a `open`, un clic solo llama a `onOpenChange` y el DOM cambia cuando cambia la prop.
+4. Un test comprueba que el botón de opciones llama a `onOptions`, tiene el nombre «Opciones de …» (con `optionsLabel` o con el título) y no abre ni cierra el paso, y que sin `onOptions` no hay botón.
+5. Un test lee `SpecStep.css` y comprueba que no hay colores, tamaños ni radios literales fuera de las excepciones comentadas, que el valor se oculta con el paso abierto, que valor y cuerpo se sangran con `space-7` y que se quita el triángulo de Safari.
+6. Se revisa a mano en Storybook (`npm run dev`) con teclado y `pointer: coarse` emulado: el valor y el cuerpo se alinean bajo el título, el valor desaparece con el paso abierto, el resumen mide 40/44 px, «···» no pliega el paso y el anillo de foco de 2 px es visible en el resumen y en el botón.
+7. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, `src/index.ts` exporta `SpecStep` y su tipo, y no hay dependencias nuevas.
+8. Hay un changeset del cambio, y `docs/PLAN.md` actualiza la tabla de estado y la sección «Estado actual».
+
+**Rollback.** Revertir el único commit del incremento.
+
+**Decisiones ya tomadas.**
+Mandan `docs/COMPONENTS.md` y el Design System de claude.ai (Chris, 2026-10-12).
+La siguiente la toma el agente al ejecutar el objetivo de completar el plan, y queda en «Decisiones abiertas»:
+- El componente lleva el estado de apertura y evita el cambio nativo del `<details>` (`preventDefault` en el `<summary>`), en vez de escuchar `toggle`: así `open` controla de verdad. El teclado y el estado expandido que anuncia el `<details>` se conservan.
+
+**Preguntas abiertas.**
+Ninguna impide empezar.
 
 ## L-7 — `ResultList`, `ResultRow` y `HowPanel`
 
@@ -317,3 +349,5 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 15. **Excepciones de tamaño de `OptionCard` (L-4).** La caja del dibujo (34px) y el paso fino del texto (2px) siguen literales y comentados, como en PliegoStack: la escala no tiene equivalente.
 16. **Foco de `MeasureField` (L-5).** Anillo de tinta de 2 px con 3 px de separación, según `COMPONENTS.md`, frente a la regla general del anillo de `color-accent-ink`. Confirmar que la cota es la excepción.
 17. **Alineación de `MeasureField` (L-5).** El valor se alinea al centro dentro de 40 px de alto mínimo, no por la línea base como en PliegoStack: puede moverse unos píxeles la cifra respecto al origen. Comparar con el original y ajustar si molesta.
+18. **Estado de `SpecStep` (L-6).** El componente lleva el estado y evita el cambio nativo del `<details>` para que `open` controle de verdad. Si se prefiere el comportamiento nativo con `onToggle`, el control deja de ser estricto. El resumen tiene el área de puntero de 40/44 px; los 44 px solo están en el CSS.
+19. **Alineación de `SpecStep` (L-6).** Con `space-7` (28 px) el valor y el cuerpo quedan a 1,6 px a la derecha del título medido en Storybook (el número de dos dígitos en mono de 12 px más el hueco de 12 px suman 26,4 px). Es el valor de PliegoStack; si se quiere alineación exacta, la sangría debería salir del ancho del número y no de un paso de la escala.

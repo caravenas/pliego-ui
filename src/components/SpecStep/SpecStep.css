@@ -1,0 +1,112 @@
+.pui-spec-step {
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-5) var(--space-4) var(--space-5) var(--space-8);
+}
+
+.pui-spec-step__summary {
+  display: flex;
+  align-items: baseline;
+  align-content: center;
+  /* Un título largo apretaría el valor hasta una elipsis: el valor baja a su línea. */
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  /* El resumen entero es el área de puntero: 40px de alto mínimo. */
+  min-height: 40px;
+  cursor: pointer;
+  list-style: none;
+  outline: none;
+}
+
+/* Safari dibuja su propio triángulo con ::-webkit-details-marker. */
+.pui-spec-step__summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Anillo propio, separado, solo con teclado. */
+.pui-spec-step__summary:focus-visible {
+  outline: 2px solid var(--color-accent-ink);
+  outline-offset: 2px;
+}
+
+.pui-spec-step__number {
+  color: var(--color-text-muted);
+}
+
+.pui-spec-step__title {
+  margin: 0;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+}
+
+/*
+ * Lo que dice el paso mientras está cerrado: en su línea bajo el título,
+ * sangrado más allá del número para que se lea como la respuesta del título.
+ */
+.pui-spec-step__value {
+  flex: 1 0 100%;
+  min-width: 0;
+  margin-top: var(--space-2);
+  padding-left: var(--space-7);
+  color: var(--color-text-secondary);
+}
+
+/* Un paso abierto suelta su valor: los campos de abajo dicen lo mismo. */
+.pui-spec-step[open] .pui-spec-step__value {
+  display: none;
+}
+
+/* Sangrado más allá del número, para que los controles queden bajo el título. */
+.pui-spec-step__body {
+  padding: var(--space-5) 0 0 var(--space-7);
+}
+
+/*
+ * «···» vive en el margen derecho del título, como la llamada de una nota y no
+ * como un botón: una marca que dice que hay más sobre este paso en otro sitio.
+ * El glifo es pequeño y la caja que lo rodea mantiene los 40px de un puntero.
+ */
+.pui-spec-step__options {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  min-height: 40px;
+  padding: 0 var(--space-2);
+  border: 0;
+  background: none;
+  line-height: 1;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  outline: none;
+}
+
+.pui-spec-step__options:hover {
+  color: var(--color-text-primary);
+}
+
+.pui-spec-step__options:focus-visible {
+  outline: 2px solid var(--color-accent-ink);
+  outline-offset: 2px;
+}
+
+/*
+ * Los márgenes de la ficha en un móvil: 32px de sangría son el margen de un
+ * lienzo en 404px y en 390px son el 8% del ancho. 1024px es el único punto de
+ * cambio de maquetación del sistema.
+ */
+@media (max-width: 1024px) {
+  .pui-spec-step {
+    padding-left: var(--space-4);
+  }
+
+  .pui-spec-step__body {
+    padding-left: 0;
+  }
+}
+
+@media (pointer: coarse) {
+  .pui-spec-step__summary,
+  .pui-spec-step__options {
+    min-height: 44px;
+  }
+}

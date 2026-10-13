@@ -44,7 +44,7 @@ interface FieldProps {
 ```
 
 - La nota al margen empuja con `margin-left: auto` y no reserva espacio cuando es `null`.
-- La nota de origen va en dos líneas cortas: el archivo en mono y el texto de origen debajo, **sin** el prefijo «Fuente:» (UX-REVIEW §6).
+- La nota de origen va en dos líneas cortas: el archivo en mono y el texto de origen debajo, **sin** el prefijo «Fuente:» (Design System, README § Fundamentos de contenido).
 
 ## Select (L-2)
 
@@ -124,7 +124,7 @@ interface SpecStepProps {
 - **Origen**: `src/components/ResultList.tsx`, `HowItIsCalculated.tsx` y los selectores `.result-list`, `.result-row`, `.stat-label`, `.stat-value`, `.stat-unit` y `.how-panel*`.
 - **API**: `ResultList` es una `<dl>`; `ResultRow` lleva `{ label, unit?, children }` y pinta `dt` y `dd`. `HowPanel` lleva `{ title = 'Cómo se calcula', formulas: ReactNode[], children, note? }`.
 - Las cifras van con `tabular-nums`; las filas, con punteado de `color-border`.
-- Rótulos inequívocos: «Hojas de papel (interior)», «Pliegos de prensa por ejemplar» (UX-REVIEW §6).
+- Rótulos inequívocos: «Hojas de papel (interior)», «Pliegos de prensa por ejemplar» (Design System, README § Fundamentos de contenido).
 
 ## Notice (L-8)
 

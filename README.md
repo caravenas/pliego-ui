@@ -1,12 +1,15 @@
 # @caravenas/pliego-ui
 
-La librería de componentes de PliegoStack: los tokens del sistema, los primitivos y, más adelante, los patrones propios de la ingeniería editorial (medidas, opciones dibujadas, ficha técnica, resultados).
+Una librería de componentes para usar en cualquier proyecto: los tokens del sistema, los primitivos y, más adelante, los patrones propios de la ingeniería editorial (medidas, opciones dibujadas, ficha técnica, resultados).
+Nació del sistema de diseño de PliegoStack, pero es un proyecto independiente.
 
-El Design System de referencia vive en claude.ai, en el artifact PliegoStack. Esta librería es ahora la **fuente de verdad**. El artifact se re-sincroniza desde aquí y PliegoStack consume el paquete.
+El estilo lo fijan `docs/COMPONENTS.md` y, sobre todo, el Design System de claude.ai (artifact PliegoStack): la librería lo implementa.
+Cuando la librería cambia, el artifact se re-sincroniza desde aquí (L-13).
+PliegoStack es el origen de los patrones y uno de los proyectos que pueden consumir el paquete (L-12); no lo define.
 
 ```
 tokens/tokens.json ──► src/styles/tokens.css + src/tokens.ts ──► dist/ (npm)
-                                                                  ├─► PliegoStack
+                                                                  ├─► cualquier proyecto (p. ej. PliegoStack)
                                                                   └─► Design System (re-sync)
 ```
 
@@ -75,5 +78,5 @@ En la app consumidora basta con añadir `@caravenas:registry=https://npm.pkg.git
 | Capa | Componentes |
 | --- | --- |
 | Primitivos | Button, Badge / OriginBadge, Input |
-| Siguiente | Select y SegmentedControl, y los patrones: OptionCard, MeasureField, SpecStep, ResultList, Notice |
+| Siguiente | Field y Select (L-2), SegmentedControl, y los patrones: OptionCard, MeasureField, SpecStep, ResultList, Notice |
 | Después | Drawer del catálogo y Toast (con Radix) |

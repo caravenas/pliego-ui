@@ -7,13 +7,14 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 - Scaffold en `main` (`9db7d12`): Vite en modo librería, TS, Storybook 8.6, Vitest 3, Changesets y el pipeline de tokens.
 - Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge` e `Input`. 21 tests en verde, build y build de Storybook verificados.
 - Aún sin remoto en GitHub, sin CI y sin publicar.
-- **Siguiente: L-0** (manual, lo hace Chris), y después L-1.
+- L-0 está a medias (2026-10-12): las dependencias ya están instaladas en macOS y `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0. Falta limpiar los restos de git de la VM Linux (`.git/stale-*` y `tmp_obj_*`) y crear el remoto.
+- **Siguiente: L-2**, que no necesita el remoto y es el piloto de la entrada estándar de tareas. L-1 espera al remoto de L-0.
 
 | Id | Incremento | Estado | Commit |
 | --- | --- | --- | --- |
-| L-0 | Puesta en marcha local y remoto | pendiente (Chris) | |
-| L-1 | CI en GitHub Actions | **siguiente** | |
-| L-2 | `Field` y `Select` | pendiente | |
+| L-0 | Puesta en marcha local y remoto | a medias (Chris) | |
+| L-1 | CI en GitHub Actions | pendiente (necesita el remoto) | |
+| L-2 | `Field` y `Select` | **siguiente** | |
 | L-3 | `SegmentedControl` | pendiente | |
 | L-4 | `OptionField` y `OptionCard` | pendiente | |
 | L-5 | `MeasureField` | pendiente | |
@@ -30,10 +31,12 @@ Orden razonado: primero la red de seguridad (CI), luego los primitivos de formul
 
 ## Fuentes
 
-- **PliegoStack**: `../book-engineering-tool` (repo `caravenas/book-engineering-tool`). El origen de cada patrón está en `src/components/*.tsx` y `src/styles/index.css`. Busca por selector, no por número de línea, porque el archivo cambia.
-- **Design System** en claude.ai: https://claude.ai/artifact/81WGnnxqtHUGnc6yK9DAHe. Brand book, notas de uso por token y previews estáticos de los doce patrones.
+Mandan sobre el estilo `docs/COMPONENTS.md` y, sobre todo, el Design System de claude.ai. Lo de PliegoStack es procedencia.
+
+- **Design System** en claude.ai: https://claude.ai/artifact/81WGnnxqtHUGnc6yK9DAHe. Brand book, notas de uso por token y previews estáticos de los doce patrones. Es la referencia principal de estilo.
 - **Especificación por componente**: `docs/COMPONENTS.md`.
-- Documentos de diseño de PliegoStack que mandan sobre el estilo: `docs/UI-REDESIGN.md` (vigente) y `docs/UX-REVIEW.md` §5 Accesibilidad y §6 Redacción.
+- **PliegoStack** (procedencia): `../book-engineering-tool` (repo `caravenas/book-engineering-tool`). El origen de cada patrón está en `src/components/*.tsx` y `src/styles/index.css`. Busca por selector, no por número de línea, porque el archivo cambia.
+- Documentos de diseño de PliegoStack, también procedencia: `UI-REDESIGN.md`, `UX-REVIEW.md` (§5 Accesibilidad y §6 Redacción) y `UI-INVENTORY.md`. Ese repositorio los archivó en `docs/legacy/` el 2026-10-02. Lo que de ellos sigue vigente está en el Design System.
 
 ---
 

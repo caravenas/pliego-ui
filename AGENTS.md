@@ -1,13 +1,19 @@
 # pliego-ui — instrucciones para agentes
 
-`@caravenas/pliego-ui` es la librería de componentes de PliegoStack: React 18/19, TypeScript, Vite en modo librería, CSS plano con custom properties, Storybook 8, Vitest 3 y Changesets.
-Es la **fuente de verdad** del sistema: PliegoStack la consume, y el Design System de claude.ai se re-sincroniza desde aquí.
+`@caravenas/pliego-ui` es una librería de componentes independiente, para usar en cualquier proyecto: React 18/19, TypeScript, Vite en modo librería, CSS plano con custom properties, Storybook 8, Vitest 3 y Changesets.
+Nació del sistema de diseño de PliegoStack, que es su origen y uno de sus posibles consumidores, no su definición.
+
+## Qué manda sobre el estilo
+
+Manda `docs/COMPONENTS.md` y, sobre todo, el Design System de claude.ai (https://claude.ai/artifact/81WGnnxqtHUGnc6yK9DAHe).
+Si los dos se contradicen, no elijas en silencio: anótalo en «Decisiones abiertas» de `docs/PLAN.md` y avisa a Chris.
+El código y los documentos de PliegoStack son procedencia: sirven para copiar valores exactos, no para decidir cómo debe verse la librería.
 
 ## Por dónde empezar
 
 1. Lee `docs/PLAN.md`. Es el plan canónico: dice qué incrementos están cerrados y cuál es el siguiente.
 2. Implementa solo el incremento que el plan marca como siguiente, respetando su alcance, sus no objetivos y sus criterios de aceptación.
-3. Para un componente que se porta desde PliegoStack, lee primero su origen en `../book-engineering-tool` (las rutas están en el plan). Los valores se copian exactos: 5px sigue siendo 5px.
+3. Para un componente que se porta desde PliegoStack, lee primero su origen en `../book-engineering-tool` (las rutas están en el plan). Los valores se copian exactos: 5px sigue siendo 5px. Es procedencia, no autoridad: ante una duda de estilo, vuelve a la sección anterior.
 4. Antes de tocar la API de un componente, lee su especificación en `docs/COMPONENTS.md`.
 
 ## Comandos
@@ -37,6 +43,13 @@ Es la **fuente de verdad** del sistema: PliegoStack la consume, y el Design Syst
 - Los comentarios del CSS explican el porqué de una decisión, no el qué, igual que en PliegoStack.
 - Radix entra solo para primitivos con comportamiento difícil (Dialog, Popover, Tooltip), un paquete `@radix-ui/react-*` por primitivo. **No añadas ninguna otra dependencia sin aprobación de Chris.**
 - Los mensajes de commit van en inglés, con prefijo convencional (`feat:`, `fix:`, `docs:`, `test:`, `chore:`), y sin coautores de agentes.
+
+## Cómo se escribe un incremento
+
+- Un incremento nuevo parte de un brief en `docs/PLAN.md`: Objetivo, Alcance, No objetivos, Aceptación numerada y Rollback. El formato está en `~/.agents/docs/formato-de-brief.md`.
+- Compruébalo con `node ~/.agents/workflows/scripts/task-brief.mjs check docs/PLAN.md --heading "L-2"`. Cada criterio de Aceptación dice cómo se comprueba: un comando, un test, una prueba o una revisión manual.
+- Lo propone el agente y lo aprueba Chris antes de construir. Nadie construye desde un brief sin aprobar.
+- El contrato de verificación (`.verify.conf`) y su política (`.agents/policy.json`) los edita solo Chris.
 
 ## Al cerrar un incremento
 

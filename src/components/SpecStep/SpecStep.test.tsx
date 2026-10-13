@@ -64,7 +64,18 @@ describe('SpecStep', () => {
     expect(container.querySelector('details')).not.toHaveAttribute('open');
   });
 
-  it('el botón de opciones llama a onOpts sin abrir ni cerrar el paso', async () => {
+  it('el botón de opciones no está dentro del <summary> ni del <details>, que lo ocultaría cerrado', () => {
+    const { container } = render(
+      <SpecStep {...base} onOptions={() => {}}>
+        x
+      </SpecStep>,
+    );
+    const button = screen.getByRole('button', { name: 'Opciones de formato' });
+    expect(container.querySelector('summary')).not.toContainElement(button);
+    expect(container.querySelector('details')).not.toContainElement(button);
+  });
+
+  it('el botón de opciones llama a onOptions sin abrir ni cerrar el paso', async () => {
     const user = userEvent.setup();
     const onOptions = vi.fn();
     const onOpenChange = vi.fn();
@@ -123,7 +134,7 @@ describe('CSS de SpecStep', () => {
   });
 
   it('oculta el valor con el paso abierto, sangra valor y cuerpo con space-7 y quita el triángulo de Safari', () => {
-    expect(code).toMatch(/\.pui-spec-step\[open\] \.pui-spec-step__value\s*\{\s*display:\s*none/);
+    expect(code).toMatch(/\.pui-spec-step__details\[open\] \.pui-spec-step__value\s*\{\s*display:\s*none/);
     expect(code).toMatch(/__value\s*\{[^}]*padding-left:\s*var\(--space-7\)/);
     expect(code).toMatch(/__body\s*\{[^}]*padding:[^;]*var\(--space-7\)/);
     expect(code).toMatch(/::-webkit-details-marker/);

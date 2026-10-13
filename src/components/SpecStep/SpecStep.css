@@ -1,4 +1,6 @@
 .pui-spec-step {
+  /* Ancla del botón de opciones, que va sobre el margen derecho del título. */
+  position: relative;
   border-bottom: 1px solid var(--color-border);
   padding: var(--space-5) var(--space-4) var(--space-5) var(--space-8);
 }
@@ -10,8 +12,8 @@
   /* Un título largo apretaría el valor hasta una elipsis: el valor baja a su línea. */
   flex-wrap: wrap;
   gap: var(--space-3);
-  /* El resumen entero es el área de puntero: 40px de alto mínimo. */
-  min-height: 40px;
+  /* El botón de opciones se posa sobre este margen: que un título largo no pase por debajo. */
+  padding-right: var(--space-10);
   cursor: pointer;
   list-style: none;
   outline: none;
@@ -33,6 +35,10 @@
 }
 
 .pui-spec-step__title {
+  display: flex;
+  align-items: center;
+  /* La fila del título es el área de puntero del resumen: 40px de alto mínimo. */
+  min-height: 40px;
   margin: 0;
   text-transform: uppercase;
   color: var(--color-text-primary);
@@ -51,7 +57,7 @@
 }
 
 /* Un paso abierto suelta su valor: los campos de abajo dicen lo mismo. */
-.pui-spec-step[open] .pui-spec-step__value {
+.pui-spec-step__details[open] .pui-spec-step__value {
   display: none;
 }
 
@@ -66,10 +72,11 @@
  * El glifo es pequeño y la caja que lo rodea mantiene los 40px de un puntero.
  */
 .pui-spec-step__options {
-  margin-left: auto;
+  position: absolute;
+  top: var(--space-5);
+  right: var(--space-4);
   display: inline-flex;
   align-items: center;
-  align-self: center;
   min-height: 40px;
   padding: 0 var(--space-2);
   border: 0;
@@ -105,7 +112,7 @@
 }
 
 @media (pointer: coarse) {
-  .pui-spec-step__summary,
+  .pui-spec-step__title,
   .pui-spec-step__options {
     min-height: 44px;
   }

@@ -23,6 +23,7 @@ El código y los documentos de PliegoStack son procedencia: sirven para copiar v
 - `npm test` corre Vitest. `npm run typecheck` corre tsc.
 - `npm run build` hace tokens, typecheck y el build de librería en `dist/`.
 - `npm run build-storybook` compila Storybook; úsalo para verificar que las stories cargan.
+- `npm run test:a11y` corre axe sobre cada story del Storybook compilado. `npm run test:visual` compara una captura por story con su referencia (`e2e/visual.spec.ts-snapshots`, de macOS); `npm run test:visual:update` las regenera tras un cambio visual intencionado y hay que revisar el diff de las imágenes. Las dos necesitan `npx playwright install chromium` una vez.
 - Todos regeneran los tokens antes de correr (`pre*`).
 
 ## Reglas del proyecto

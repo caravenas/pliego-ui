@@ -5,7 +5,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 ## Estado actual
 
 - Scaffold en `main` (`9db7d12`): Vite en modo librería, TS, Storybook 8.6, Vitest 3, Changesets y el pipeline de tokens.
-- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `OptionCard`, `MeasureField`, `MeasureGrid`, `SpecStep`, `ResultList`, `ResultRow`, `HowPanel`, `Notice`, `Drawer` y `Toast`. 124 tests en verde, build y build de Storybook verificados (L-11, 2026-10-13).
+- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `OptionCard`, `MeasureField`, `MeasureGrid`, `SpecStep`, `ResultList`, `ResultRow`, `HowPanel`, `Notice`, `Drawer` y `Toast`. 125 tests en verde, 48 stories sin violaciones de axe y 48 capturas de referencia (L-9, 2026-10-13).
 - Aún sin remoto en GitHub, sin CI y sin publicar.
 - L-0 está a medias (2026-10-12): las dependencias ya están instaladas en macOS y `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0. Falta limpiar los restos de git de la VM Linux (`.git/stale-*` y `tmp_obj_*`) y crear el remoto.
 - L-2 cerrado: `Field` (enlaza el control por `id`, error con `role="alert"`, nota al margen y nota de origen) y `Select` (desplegable nativo en cápsula, triángulo en `color-text-muted`).
@@ -17,7 +17,8 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 - L-8 cerrado: `Notice` (note, preview, error, config) con rol según la variante. Con él están todos los componentes de la fase de diseño; lo que queda necesita a Chris o dependencias nuevas (ver L-9 en adelante).
 - L-1 escrito (`.github/workflows/ci.yml` y `release.yml`), pero **sin ejecutar nunca**: su aceptación (un PR en verde, el release sin publicar) necesita el remoto de L-0.
 - L-11, parcial: `Drawer` no modal sobre Radix Dialog y `Toast` sobre Radix Toast (dependencias autorizadas por Chris el 2026-10-13). Falta `Tooltip`, que solo se hace si aparece un caso real.
-- **Siguiente: L-9**, que necesita aprobación por dependencias nuevas.
+- L-9 cerrado en local: axe sobre las 48 stories (`npm run test:a11y`) y capturas comparadas (`npm run test:visual`). En CI solo corre axe; `pages.yml` está escrito y sin ejecutar.
+- **Siguiente: L-10**, que necesita el remoto de L-0 y una acción hacia fuera.
 
 | Id | Incremento | Estado | Commit |
 | --- | --- | --- | --- |
@@ -30,7 +31,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-6 | `SpecStep` | hecho | ver `git log` (`feat: add SpecStep`) |
 | L-7 | `ResultList`, `ResultRow` y `HowPanel` | hecho | ver `git log` (`feat: add ResultList and HowPanel`) |
 | L-8 | `Notice` | hecho | ver `git log` (`feat: add Notice`) |
-| L-9 | Accesibilidad y regresión visual en CI | **siguiente** (necesita aprobación) | |
+| L-9 | Accesibilidad y regresión visual en CI | hecho en local (CI y Pages sin ejecutar) | ver `git log` (`test: add accessibility and visual regression checks`) |
 | L-10 | Primera publicación, 0.1.0 | pendiente | |
 | L-11 | Radix: `Drawer` (catálogo), `Tooltip`, `Toast` | parcial: `Drawer` y `Toast` hechos; `Tooltip` pendiente (solo con un caso real) | ver `git log` (`feat: add Drawer`, `feat: add Toast`) |
 | L-12 | Migrar PliegoStack a la librería | pendiente | |
@@ -366,11 +367,42 @@ Ninguna impide empezar.
 
 ## L-9 — Accesibilidad y regresión visual en CI
 
-- Tests de Storybook (`@storybook/test-runner`, o el addon de tests si se sube de versión) con axe en cada story, y fallo ante una violación.
-- Capturas por story con Playwright, comparadas contra una referencia.
-- Storybook publicado en GitHub Pages.
+Cada story del Storybook compilado se somete a axe y a una captura comparada contra su referencia, con Playwright. Origen: ninguno; es infraestructura de la librería.
 
-Requiere aprobación de Chris por las dependencias nuevas.
+**Objetivo.**
+Que una violación de accesibilidad o un cambio visual no intencionado en cualquier story se detecte al abrir un PR y no cuando alguien lo ve en producción.
+
+**Alcance.**
+- `e2e/a11y.spec.ts`: una prueba por story que corre axe (WCAG 2.1 A y AA) sobre la story abierta en `iframe.html` y falla ante cualquier violación, con la regla y el selector en el mensaje.
+- `e2e/visual.spec.ts`: una captura por story comparada con su referencia versionada.
+- `playwright.config.ts`, un servidor estático propio (`scripts/serve-static.mjs`, solo Node) y los scripts `test:a11y`, `test:visual` y `test:visual:update`, que compilan Storybook antes.
+- Las fuentes de Google se bloquean en las pruebas: con red cargarían Inter y sin red la pila de respaldo, y una comparación necesita lo mismo las dos veces.
+- Las dependencias de desarrollo `@playwright/test` y `@axe-core/playwright`, autorizadas por Chris el 2026-10-13.
+- El paso de a11y en `ci.yml` y `.github/workflows/pages.yml`, que publica `storybook-static` en GitHub Pages.
+- Arreglar lo que axe encuentre en las stories actuales.
+
+**No objetivos.**
+- Ejecutar las capturas en CI: sus referencias son de macOS y una captura de otro sistema no es comparable. Hace falta generar referencias de Linux (en CI o con Docker) antes.
+- `@storybook/test-runner` (el plan lo nombraba): necesita `jest-image-snapshot` para las capturas, una tercera dependencia que Chris no aprobó, mientras que Playwright Test las trae.
+- Pruebas de interacción por story (`play`) o de varios navegadores o tamaños.
+- Cambiar los componentes más allá de lo que axe pida.
+
+**Aceptación.**
+1. `npm run test:a11y` termina en 0 con las 48 stories actuales, en tres ejecuciones seguidas, y una violación introducida a propósito (el `nested-interactive` que axe encontró en `SpecStep`) la hace fallar.
+2. `npm run test:visual` termina en 0 con las referencias generadas, en tres ejecuciones seguidas, y un cambio de estilo introducido a propósito falla en la story afectada y solo en ella.
+3. `npm test` no recoge las pruebas de `e2e/` y sigue en verde, y `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0.
+4. Un test de Vitest comprueba el comportamiento de `SpecStep` tras mover el botón de opciones fuera del `<summary>`: no está dentro de él ni del `<details>`, y su clic no abre ni cierra el paso.
+5. `ci.yml` ejecuta axe tras compilar Storybook, y `pages.yml` está escrito: revisión manual de ambos archivos, porque no se ejecutarán hasta que exista el remoto.
+6. Hay un changeset del cambio (el de `SpecStep`) y `docs/PLAN.md` actualiza la tabla de estado y la sección «Estado actual».
+
+**Rollback.** Revertir el único commit del incremento y desinstalar `@playwright/test` y `@axe-core/playwright`.
+
+**Decisiones ya tomadas.**
+Chris autorizó las dependencias de L-9 (2026-10-13).
+Las siguientes las toma el agente al ejecutar el objetivo de completar el plan, y quedan en «Decisiones abiertas»: Playwright Test y `@axe-core/playwright` en lugar de `@storybook/test-runner`; las capturas solo en local; y mover el botón «···» de `SpecStep` fuera del `<summary>` para cumplir axe.
+
+**Preguntas abiertas.**
+Ninguna impide empezar.
 
 ## L-10 — Primera publicación, 0.1.0
 
@@ -471,3 +503,8 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 26. **`Toast` sin API imperativa (L-11).** Se controla con `open`, como `Drawer`. Un `toast(...)` global con cola sería más cómodo para quien avisa desde cualquier sitio, pero añade estado global y una API que PliegoStack no usa. Confirmar o pedirlo.
 27. **Errores que no se van solos (L-11).** Un `Toast` de error usa `duration` infinita: se queda hasta descartarlo. Si apilar varios errores resulta molesto, habrá que limitar la cola. Los 44 px con `pointer: coarse` solo están en el CSS (no se emuló).
 28. **Captura de puntero en el setup de tests (L-11).** `src/test/setup.ts` define `hasPointerCapture`, `setPointerCapture` y `releasePointerCapture` como no-ops porque jsdom no las trae y Radix las usa; los tests de `MeasureField` las sustituyen con sus propios mocks.
+29. **Playwright Test en lugar de `@storybook/test-runner` (L-9).** El plan nombraba el `test-runner`, que es de Jest y necesita `jest-image-snapshot` para las capturas. Se usó `@playwright/test` con `@axe-core/playwright`: una herramienta, sin tercera dependencia. Si se prefiere el `test-runner` (o el addon de tests al subir de Storybook), es un cambio acotado a `e2e/`.
+30. **Capturas solo en local (L-9).** Las 48 referencias son de macOS (`*-darwin.png`) y las fuentes de Google se bloquean, así que se comparan con la pila de respaldo. `ci.yml` no las ejecuta: en Linux las referencias no existen y no serían comparables. Para activarlas hay que generar las de Linux (un workflow manual que suba el resultado, o Docker) y revisarlas una vez.
+31. **`SpecStep` y axe (L-9).** axe marcó `nested-interactive` (grave): el botón «···» estaba dentro del `<summary>`. Ahora el `<details>` va envuelto y el botón es hermano suyo, posado sobre el margen derecho del título. Cambia el marcado respecto a PliegoStack. Es una corrección de accesibilidad que PliegoStack arrastra.
+32. **Colisión con el addon `a11y` (L-9).** El addon corre axe dentro de la story y axe no admite dos ejecuciones a la vez; la prueba reintenta hasta 20 veces mientras el addon termina. Si Storybook cambia el addon, revisar `e2e/a11y.spec.ts`.
+33. **`pages.yml` sin probar (L-9).** Escrito con `actions/configure-pages@v5`, `upload-pages-artifact@v3` y `deploy-pages@v4`. Un repositorio privado necesita un plan de GitHub que admita Pages; comprobar al crear el remoto.

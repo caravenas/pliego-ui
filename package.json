@@ -40,6 +40,11 @@
     "prestorybook": "npm run tokens",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "npm run tokens && storybook build",
+    "pretest:a11y": "npm run build-storybook",
+    "test:a11y": "playwright test e2e/a11y.spec.ts",
+    "pretest:visual": "npm run build-storybook",
+    "test:visual": "playwright test e2e/visual.spec.ts",
+    "test:visual:update": "playwright test e2e/visual.spec.ts --update-snapshots",
     "pretypecheck": "npm run tokens",
     "typecheck": "tsc --noEmit",
     "pretest": "npm run tokens",
@@ -55,7 +60,9 @@
     "react-dom": "^18.2.0 || ^19.0.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@changesets/cli": "^2.27.10",
+    "@playwright/test": "^1.64.0",
     "@storybook/addon-a11y": "^8.6.0",
     "@storybook/addon-essentials": "^8.6.0",
     "@storybook/react": "^8.6.0",

@@ -30,6 +30,14 @@ export interface SpecStepProps {
  * serie. El estado lo lleva el componente (no el navegador), para que
  * `open` controle de verdad y un clic que el consumidor no acepta no deje el
  * DOM y el estado discrepando.
+ *
+ * El botón «···» no va dentro del `<summary>`, que ya es interactivo: axe lo
+ * marca como `nested-interactive` (grave), porque un lector de pantalla no
+ * garantiza anunciar un control dentro de otro. Tampoco puede ir dentro del
+ * `<details>`, que oculta todo lo que no es el `<summary>` con el paso cerrado.
+ * Por eso el `<details>` va envuelto, y el botón es hermano suyo, posado sobre
+ * el margen derecho de la fila del título: su clic no pliega el paso sin
+ * necesitar `stopPropagation`.
  */
 export const SpecStep = forwardRef<HTMLDetailsElement, SpecStepProps>(function SpecStep(
   { number, title, summary, onOptions, optionsLabel, open, defaultOpen = false, onOpenChange, className, children },
@@ -47,31 +55,28 @@ export const SpecStep = forwardRef<HTMLDetailsElement, SpecStepProps>(function S
   }
 
   return (
-    <details ref={ref} className={cx('pui-spec-step', className)} open={current}>
-      <summary className="pui-spec-step__summary" onClick={toggle}>
-        <span className="pui-spec-step__number pui-type-mono-note">{String(number).padStart(2, '0')}</span>
-        <h2 className="pui-spec-step__title pui-type-spec-step-title">{title}</h2>
-        {onOptions ? (
-          <button
-            type="button"
-            className="pui-spec-step__options pui-type-mono-note"
-            aria-label={`Opciones de ${optionsLabel ?? title.toLowerCase()}`}
-            onClick={(event) => {
-              // El botón está dentro del <summary>: sin esto, su clic también
-              // plegaría el paso tras el catálogo que acaba de abrir.
-              event.stopPropagation();
-              onOptions();
-            }}
-          >
-            ···
-          </button>
-        ) : null}
-        {/* Bajo el título y no a su lado: un título largo dejaba el valor en
-            una elipsis, y el valor es lo que se lee. Va dentro del <summary>
-            porque lo que hay fuera es justo lo que el cierre oculta. */}
-        <span className="pui-spec-step__value pui-type-mono-note">{summary}</span>
-      </summary>
-      <div className="pui-spec-step__body">{children}</div>
-    </details>
+    <div className={cx('pui-spec-step', className)}>
+      <details ref={ref} className="pui-spec-step__details" open={current}>
+        <summary className="pui-spec-step__summary" onClick={toggle}>
+          <span className="pui-spec-step__number pui-type-mono-note">{String(number).padStart(2, '0')}</span>
+          <h2 className="pui-spec-step__title pui-type-spec-step-title">{title}</h2>
+          {/* Bajo el título y no a su lado: un título largo dejaba el valor en
+              una elipsis, y el valor es lo que se lee. Va dentro del <summary>
+              porque lo que hay fuera es justo lo que el cierre oculta. */}
+          <span className="pui-spec-step__value pui-type-mono-note">{summary}</span>
+        </summary>
+        <div className="pui-spec-step__body">{children}</div>
+      </details>
+      {onOptions ? (
+        <button
+          type="button"
+          className="pui-spec-step__options pui-type-mono-note"
+          aria-label={`Opciones de ${optionsLabel ?? title.toLowerCase()}`}
+          onClick={onOptions}
+        >
+          ···
+        </button>
+      ) : null}
+    </div>
   );
 });

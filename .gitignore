@@ -9,3 +9,7 @@ _to_delete
 # Generados por scripts/build-tokens.ts
 src/styles/tokens.css
 src/tokens.ts
+
+# Pruebas de navegador (Playwright)
+test-results
+playwright-report

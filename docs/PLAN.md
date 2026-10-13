@@ -21,7 +21,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 - L-9 cerrado en local: axe sobre las 48 stories (`npm run test:a11y`) y capturas comparadas (`npm run test:visual`). En CI solo corre axe; `pages.yml` está escrito y sin ejecutar.
 - L-1 cerrado (2026-10-13): con los dos permisos activados, el release abrió el PR de versión y, al mergearlo, publicó `@caravenas/pliego-ui@0.1.0` en GitHub Packages con `GITHUB_TOKEN` y creó el tag `v0.1.0`. Storybook se publica en https://caravenas.github.io/pliego-ui/.
 - L-10 cerrado (`e10826c`, 2026-10-13): `@caravenas/pliego-ui@0.1.0` se instala desde un proyecto vacío con `@caravenas:registry` en su `.npmrc`, trae `@radix-ui/react-dialog` y `react-toast` como dependencias, exporta los 18 componentes y `./styles.css` y `./tokens.json` resuelven.
-- **Siguiente:** quedan `Tooltip` (solo con un caso real), L-12 (PliegoStack) y L-13 (Design System), que se hacen fuera de este repositorio.
+- **Siguiente:** quedan `Tooltip` (solo con un caso real) y L-13 (Design System), que se hace fuera de este repositorio. L-12 (migrar PliegoStack) se descartó: es trabajo de ese proyecto.
 
 | Id | Incremento | Estado | Commit |
 | --- | --- | --- | --- |
@@ -37,7 +37,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-9 | Accesibilidad y regresión visual en CI | hecho en local (CI y Pages sin ejecutar) | ver `git log` (`test: add accessibility and visual regression checks`) |
 | L-10 | Primera publicación, 0.1.0 | hecho (publicado e instalado desde un proyecto vacío, 2026-10-13) | `e10826c`, tag `v0.1.0` |
 | L-11 | Radix: `Drawer` (catálogo), `Tooltip`, `Toast` | parcial: `Drawer` y `Toast` hechos; `Tooltip` pendiente (solo con un caso real) | ver `git log` (`feat: add Drawer`, `feat: add Toast`) |
-| L-12 | Migrar PliegoStack a la librería | pendiente | |
+| L-12 | Migrar PliegoStack a la librería | descartado (Chris, 2026-10-13): es trabajo del proyecto PliegoStack | |
 | L-13 | Re-sincronizar el Design System desde la librería | pendiente | |
 
 Orden razonado: primero la red de seguridad (CI), luego los primitivos de formulario que todo lo demás usa (`Field`), luego los patrones propios en el orden en que aparecen en la ficha técnica, y solo entonces publicar y migrar. Radix entra cuando haga falta, no antes.
@@ -142,7 +142,7 @@ Que quien construye una interfaz con pliego-ui tenga un selector segmentado que 
 - `OptionField` y `OptionCard` (L-4): allí se decide su semántica por separado, aunque reutilicen el hook de teclado.
 - Selección múltiple, segmentos con icono o con contador, y orientación vertical.
 - Cambiar `Button`, `Input`, `Select` o `Field`; tokens nuevos; dependencias nuevas; tema oscuro.
-- Migrar `CentralViewTabs` de PliegoStack (L-12).
+- Migrar `CentralViewTabs` de PliegoStack: es trabajo de ese proyecto.
 
 **Aceptación.**
 1. Un test comprueba que `kind="tabs"` pinta un `tablist` con `aria-label`, un `tab` por opción con `aria-selected` solo en el actual, y que solo el actual tiene `tabindex="0"` (los demás `-1`).
@@ -455,14 +455,6 @@ Las siguientes las toma el agente al ejecutar el objetivo de completar el plan, 
 
 **Preguntas abiertas.**
 Ninguna impide empezar.
-
-## L-12 — Migrar PliegoStack
-
-Se hace **en el repo de PliegoStack**, siguiendo su `AGENTS.md` y su `docs/PLAN.md`; aquí solo se deja el orden.
-
-1. Instalar `@caravenas/pliego-ui` e importar `styles.css` y `fonts.css`. Eliminar el bloque `:root` de `src/styles/index.css`: los nombres de variable son los mismos. Comprobar que la app se ve idéntica (Playwright `e2e/`).
-2. Un commit por componente sustituido, empezando por los botones del catálogo, y borrando cada vez las reglas CSS que dejan de usarse.
-3. Eliminar el `<link>` de Google Fonts de `index.html` si se adopta `fonts.css`.
 
 ## L-13 — Re-sincronizar el Design System
 

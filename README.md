@@ -5,7 +5,7 @@ Nació del sistema de diseño de PliegoStack, pero es un proyecto independiente.
 
 El estilo lo fijan `docs/COMPONENTS.md` y, sobre todo, el Design System de claude.ai (artifact PliegoStack): la librería lo implementa.
 Cuando la librería cambia, el artifact se re-sincroniza desde aquí (L-13).
-PliegoStack es el origen de los patrones y uno de los proyectos que pueden consumir el paquete (L-12); no lo define.
+PliegoStack es el origen de los patrones y uno de los proyectos que pueden consumir el paquete; no lo define.
 
 ```
 tokens/tokens.json ──► src/styles/tokens.css + src/tokens.ts ──► dist/ (npm)

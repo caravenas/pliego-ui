@@ -1,0 +1,88 @@
+/* Las tres medidas de un formato son una sola decisión: una fila, no un formulario. */
+.pui-measure-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.pui-measure {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.pui-measure__label {
+  display: block;
+  color: var(--color-text-secondary);
+  /* La etiqueta se escribe en minúsculas en el JSX; las versalitas son de CSS. */
+  text-transform: uppercase;
+}
+
+/* El valor se apoya en una línea, como se escribe una medida en un plano. */
+.pui-measure__value {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  /* 40px de alto mínimo, 44px con puntero grueso: el suelo de todo control. */
+  min-height: 40px;
+  border-bottom: 1px solid var(--color-text-primary);
+}
+
+/* Un sangrado se dibuja discontinuo en todo el sistema: es donde cae el corte y no donde acaba el papel. */
+.pui-measure__value--dashed {
+  border-bottom-style: dashed;
+}
+
+.pui-measure__input {
+  min-width: 0;
+  flex: 1;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-primary);
+  /* El selector numérico ocuparía un tercio del sitio que pide la cifra, y las flechas del teclado hacen lo mismo con el campo entero. */
+  appearance: textfield;
+  outline: none;
+}
+
+.pui-measure__input::-webkit-inner-spin-button,
+.pui-measure__input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+/*
+ * Anillo de tinta, no de acento, con 3px de separación: la cifra es una cota
+ * y el acento no marca nada con significado en ella.
+ */
+.pui-measure__input:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 3px;
+}
+
+/* La unidad hace de tirador: dice en qué unidad está la cifra y arrastrarla de lado la cambia. */
+.pui-measure__unit {
+  display: inline-flex;
+  align-items: center;
+  align-self: stretch;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  cursor: ew-resize;
+  user-select: none;
+  touch-action: none;
+}
+
+/* En columna la nota va bajo el valor que describe; el margen del que toma el nombre es el de la fila de etiqueta, y aquí no hay. */
+.pui-measure__marginalia {
+  /* Una línea de nota reservada (1.5em, su altura de línea) para que las medidas de la fila queden alineadas con o sin nota. */
+  min-height: 1.5em;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+@media (pointer: coarse) {
+  .pui-measure__value {
+    min-height: 44px;
+  }
+}

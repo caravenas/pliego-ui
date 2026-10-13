@@ -5,13 +5,14 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 ## Estado actual
 
 - Scaffold en `main` (`9db7d12`): Vite en modo librería, TS, Storybook 8.6, Vitest 3, Changesets y el pipeline de tokens.
-- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField` y `OptionCard`. 62 tests en verde, build y build de Storybook verificados (L-4, 2026-10-12).
+- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `OptionCard`, `MeasureField` y `MeasureGrid`. 77 tests en verde, build y build de Storybook verificados (L-5, 2026-10-12).
 - Aún sin remoto en GitHub, sin CI y sin publicar.
 - L-0 está a medias (2026-10-12): las dependencias ya están instaladas en macOS y `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0. Falta limpiar los restos de git de la VM Linux (`.git/stale-*` y `tmp_obj_*`) y crear el remoto.
 - L-2 cerrado: `Field` (enlaza el control por `id`, error con `role="alert"`, nota al margen y nota de origen) y `Select` (desplegable nativo en cápsula, triángulo en `color-text-muted`).
 - L-3 cerrado: `SegmentedControl` con `tablist` (`tabs`) y `radiogroup` (`options`), un punto de tabulación, flechas, Inicio y Fin. Resuelve la decisión abierta 1 para este componente.
 - L-4 cerrado: `OptionField` (sobre `Field` con `group`) y `OptionCard` (botón con `aria-pressed`, rejilla y escala).
-- **Siguiente: L-5.** L-1 espera al remoto de L-0.
+- L-5 cerrado: `MeasureField` y `MeasureGrid` (escribir, flechas, arrastre con captura de puntero).
+- **Siguiente: L-6.** L-1 espera al remoto de L-0.
 
 | Id | Incremento | Estado | Commit |
 | --- | --- | --- | --- |
@@ -20,8 +21,8 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-2 | `Field` y `Select` | hecho | ver `git log` (`feat: add Field and Select`) |
 | L-3 | `SegmentedControl` | hecho | ver `git log` (`feat: add SegmentedControl`) |
 | L-4 | `OptionField` y `OptionCard` | hecho | ver `git log` (`feat: add OptionField and OptionCard`) |
-| L-5 | `MeasureField` | **siguiente** | |
-| L-6 | `SpecStep` | pendiente | |
+| L-5 | `MeasureField` | hecho | ver `git log` (`feat: add MeasureField`) |
+| L-6 | `SpecStep` | **siguiente** | |
 | L-7 | `ResultList`, `ResultRow` y `HowPanel` | pendiente | |
 | L-8 | `Notice` | pendiente | |
 | L-9 | Accesibilidad y regresión visual en CI | pendiente | |
@@ -199,14 +200,46 @@ Ninguna impide empezar.
 
 ## L-5 — `MeasureField`
 
-Ver § MeasureField. Origen: `src/components/MeasureField.tsx`. Es el componente con más comportamiento: escribir, flechas (más Mayús para 10 pasos) y arrastrar la unidad con captura de puntero.
+Ver `docs/COMPONENTS.md` § MeasureField. Origen: `src/components/MeasureField.tsx` y los selectores `.measure-*` de PliegoStack; `roundTo` viene de su `src/engine/units.ts`. Es el componente con más comportamiento: escribir, flechas (más Mayús para diez pasos) y arrastrar la unidad con captura de puntero.
 
-**Aceptación**:
-- Los tres modos de entrada funcionan y redondean al grid del paso (`decimalsOf`).
-- El arrastre sobrevive a que el puntero salga del tirador.
-- Nunca baja de `min`.
-- Variante `dashed` para el sangrado.
-- Tests de teclado y de arrastre simulando eventos de puntero.
+**Objetivo.**
+Que quien construye un formulario con medidas (formato, lomo, sangrado) tenga una cota escrita como en un plano, que se cambia escribiendo, con flechas o arrastrando la unidad, sin reimplementar el redondeo ni el arrastre.
+
+**Alcance.**
+- `MeasureField`, con la API de `docs/COMPONENTS.md`: `label`, `id`, `value` (`number | ''`), `unit`, `step`, `pixelsPerStep` (3), `min` (0), `onChange`, `marginalia` y `dashed`; `forwardRef` al input.
+- `MeasureGrid`, la fila de tres.
+- Escribir no redondea; Mayús + flecha da diez pasos; una flecha sola se deja al input nativo; el arrastre usa `setPointerCapture` y sobrevive a que el puntero salga del tirador. Todo paso se redondea a los decimales de `step` y nunca baja de `min`.
+- `roundTo` y `decimalsOf` como utilidad interna (`src/utils/roundTo.ts`), con sus tests.
+- Foco: anillo de **tinta** de 2 px con 3 px de separación, no de acento. La marginalia va bajo el valor, enlazada con `aria-describedby`.
+- Stories (por defecto, sangrado discontinuo, fila de tres), tests, export con tipos y un changeset.
+
+**No objetivos.**
+- Un tirador alcanzable por teclado: las flechas sobre la cifra hacen lo mismo.
+- Conversión entre unidades o validación de rangos: el consumidor aporta el valor ya en la unidad mostrada.
+- Cambiar `Field`, `Input` y los demás componentes; tokens o dependencias nuevas; tema oscuro.
+
+**Aceptación.**
+1. Un test comprueba que la etiqueta y la cifra se unen por `id` y que es un `<input type="number">` con su `step` y su `min`.
+2. Un test comprueba que escribir llama a `onChange` sin redondear, y que Mayús + flecha da diez pasos redondeados a la rejilla del paso (`0.125`), con el valor final `2.25` y el mínimo `0`.
+3. Un test comprueba que una flecha sola no se intercepta (`defaultPrevented` falso).
+4. Un test simula eventos de puntero y comprueba que arrastrar la unidad cambia el valor por muescas de `pixelsPerStep`, que se captura el puntero, que soltar o cancelar lo libera y que después no se cambia nada.
+5. Un test comprueba que ni flechas ni arrastre bajan de `min`, y que con `value=""` ninguno de los dos actúa.
+6. Un test comprueba `dashed`, que la marginalia se enlaza con `aria-describedby` y que `marginalia={null}` no deja nodo, la ref y `MeasureGrid`.
+7. Un test lee `MeasureField.css` y comprueba que no hay colores, tamaños ni radios literales fuera de las excepciones comentadas, y que el foco es de tinta y nunca de acento.
+8. Se revisa a mano en Storybook (`npm run dev`) con teclado y `pointer: coarse` emulado: la cifra sobre su filete (discontinuo en el sangrado), 40/44 px de alto, el anillo de tinta de 2 px con 3 px de separación y el arrastre real con el ratón.
+9. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, `src/index.ts` exporta `MeasureField`, `MeasureGrid` y sus tipos, y no hay dependencias nuevas.
+10. Hay un changeset del cambio, y `docs/PLAN.md` actualiza la tabla de estado y la sección «Estado actual».
+
+**Rollback.** Revertir el único commit del incremento.
+
+**Decisiones ya tomadas.**
+Mandan `docs/COMPONENTS.md` y el Design System de claude.ai (Chris, 2026-10-12).
+Las dos siguientes las toma el agente al ejecutar el objetivo de completar el plan, y quedan en «Decisiones abiertas» para que Chris las confirme:
+- El anillo de foco es de tinta con 3 px de separación, como pide `COMPONENTS.md`, aunque la regla general del sistema sea el anillo de `color-accent-ink`: la cifra es una cota y el acento no marca nada en ella.
+- El valor tiene 40 px de alto mínimo (44 con puntero grueso) y alinea sus elementos al centro, no por la línea base como el origen, para cumplir el área mínima de la regla del sistema.
+
+**Preguntas abiertas.**
+Ninguna impide empezar.
 
 ## L-6 — `SpecStep`
 
@@ -282,3 +315,5 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 13. **`pointer: coarse` sin emulación (L-3).** Igual que en L-2: los 44 px solo están en el CSS y no se midieron en el navegador.
 14. **`OptionCard` con `aria-pressed` (L-4).** Decidido por el agente al ejecutar el objetivo de completar el plan, sin confirmación de Chris: mantiene la API y la semántica de PliegoStack. Confirmar o pasar a `radio` con el teclado de `SegmentedControl`. Los 44 px con `pointer: coarse` solo están en el CSS (no se emuló).
 15. **Excepciones de tamaño de `OptionCard` (L-4).** La caja del dibujo (34px) y el paso fino del texto (2px) siguen literales y comentados, como en PliegoStack: la escala no tiene equivalente.
+16. **Foco de `MeasureField` (L-5).** Anillo de tinta de 2 px con 3 px de separación, según `COMPONENTS.md`, frente a la regla general del anillo de `color-accent-ink`. Confirmar que la cota es la excepción.
+17. **Alineación de `MeasureField` (L-5).** El valor se alinea al centro dentro de 40 px de alto mínimo, no por la línea base como en PliegoStack: puede moverse unos píxeles la cifra respecto al origen. Comparar con el original y ajustar si molesta.

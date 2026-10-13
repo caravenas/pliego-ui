@@ -39,5 +39,8 @@ export type { HowPanelProps } from './components/HowPanel/HowPanel';
 export { Notice } from './components/Notice/Notice';
 export type { NoticeProps, NoticeVariant } from './components/Notice/Notice';
 
+export { Drawer } from './components/Drawer/Drawer';
+export type { DrawerProps } from './components/Drawer/Drawer';
+
 export { tokenNames, cssVar, fontFamilies, typeStyles } from './tokens';
 export type { TokenName, FontFamily, TypeStyle } from './tokens';

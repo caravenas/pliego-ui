@@ -21,7 +21,7 @@ export default defineConfig({
       cssFileName: 'styles',
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'react/jsx-runtime'],
+      external: ['react', 'react-dom', 'react/jsx-runtime', /^@radix-ui\//],
     },
     sourcemap: true,
     // public/fonts.css viaja tal cual a dist/fonts.css.

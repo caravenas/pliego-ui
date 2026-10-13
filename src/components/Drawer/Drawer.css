@@ -1,0 +1,112 @@
+.pui-drawer {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-end: 0;
+  /* Encima de la vista que tapa: es una capa y no forma parte del flujo. */
+  z-index: 10;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  /* 30rem: el ancho de un editor de dos columnas apretado; sin equivalente en la escala. */
+  width: min(100%, 30rem);
+  padding: var(--space-6);
+  border-left: 1px solid var(--color-text-primary);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  /* Se enfoca por código al abrir; el anillo es de los controles de dentro. */
+  outline: none;
+}
+
+.pui-drawer[data-state='open'] {
+  animation: pui-drawer-in var(--transition-drawer-in) both;
+}
+
+/*
+ * Opaco todo el camino de salida, a diferencia de la entrada: debajo ya hay una
+ * vista, y un panel que se desvaneciera mostraría las dos encima en vez de una
+ * descubriendo a la otra.
+ */
+.pui-drawer[data-state='closed'] {
+  animation: pui-drawer-out var(--transition-drawer-out) both;
+}
+
+@keyframes pui-drawer-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes pui-drawer-out {
+  from {
+    transform: none;
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Con menos movimiento pedido, simplemente cambia de sitio. */
+@media (prefers-reduced-motion: reduce) {
+  .pui-drawer[data-state='open'],
+  .pui-drawer[data-state='closed'] {
+    animation: none;
+  }
+}
+
+.pui-drawer__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-text-primary);
+}
+
+.pui-drawer__title {
+  flex: 1;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.pui-drawer__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--text-xl);
+  cursor: pointer;
+  outline: none;
+}
+
+.pui-drawer__close:hover {
+  background: var(--color-bg-card-hover);
+}
+
+.pui-drawer__close:focus-visible {
+  outline: 2px solid var(--color-accent-ink);
+  outline-offset: 2px;
+}
+
+.pui-drawer__body {
+  flex: 1;
+  min-height: 0;
+  padding-top: var(--space-4);
+  overflow-y: auto;
+}
+
+@media (pointer: coarse) {
+  .pui-drawer__close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

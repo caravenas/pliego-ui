@@ -15,6 +15,16 @@
       "name": "transition-slow",
       "value": "400ms cubic-bezier(0.4, 0, 0.2, 1)",
       "usage": "Declarado; sin uso todavía."
+    },
+    {
+      "name": "transition-drawer-in",
+      "value": "280ms cubic-bezier(0.2, 0, 0, 1)",
+      "usage": "Un panel lateral al entrar: llega desde el borde derecho."
+    },
+    {
+      "name": "transition-drawer-out",
+      "value": "240ms cubic-bezier(0.4, 0, 1, 1)",
+      "usage": "Un panel lateral al salir: se va opaco por el borde derecho, porque debajo ya hay otra vista y un fundido las mezclaría."
     }
   ]
 }

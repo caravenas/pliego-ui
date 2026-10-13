@@ -5,7 +5,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 ## Estado actual
 
 - Scaffold en `main` (`9db7d12`): Vite en modo librería, TS, Storybook 8.6, Vitest 3, Changesets y el pipeline de tokens.
-- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `OptionCard`, `MeasureField`, `MeasureGrid`, `SpecStep`, `ResultList`, `ResultRow`, `HowPanel` y `Notice`. 107 tests en verde, build y build de Storybook verificados (L-8, 2026-10-12).
+- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `OptionCard`, `MeasureField`, `MeasureGrid`, `SpecStep`, `ResultList`, `ResultRow`, `HowPanel`, `Notice` y `Drawer`. 115 tests en verde, build y build de Storybook verificados (L-11 parcial, 2026-10-13).
 - Aún sin remoto en GitHub, sin CI y sin publicar.
 - L-0 está a medias (2026-10-12): las dependencias ya están instaladas en macOS y `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0. Falta limpiar los restos de git de la VM Linux (`.git/stale-*` y `tmp_obj_*`) y crear el remoto.
 - L-2 cerrado: `Field` (enlaza el control por `id`, error con `role="alert"`, nota al margen y nota de origen) y `Select` (desplegable nativo en cápsula, triángulo en `color-text-muted`).
@@ -16,6 +16,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 - L-7 cerrado: `ResultList` y `ResultRow` (`<dl>` con `tabular-nums`) y `HowPanel`.
 - L-8 cerrado: `Notice` (note, preview, error, config) con rol según la variante. Con él están todos los componentes de la fase de diseño; lo que queda necesita a Chris o dependencias nuevas (ver L-9 en adelante).
 - L-1 escrito (`.github/workflows/ci.yml` y `release.yml`), pero **sin ejecutar nunca**: su aceptación (un PR en verde, el release sin publicar) necesita el remoto de L-0.
+- L-11, parcial: `Drawer` no modal sobre Radix Dialog (dependencia autorizada por Chris el 2026-10-13). Faltan `Toast` y `Tooltip`.
 - **Siguiente: L-9**, que necesita aprobación por dependencias nuevas.
 
 | Id | Incremento | Estado | Commit |
@@ -31,7 +32,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-8 | `Notice` | hecho | ver `git log` (`feat: add Notice`) |
 | L-9 | Accesibilidad y regresión visual en CI | **siguiente** (necesita aprobación) | |
 | L-10 | Primera publicación, 0.1.0 | pendiente | |
-| L-11 | Radix: `Drawer` (catálogo), `Tooltip`, `Toast` | pendiente | |
+| L-11 | Radix: `Drawer` (catálogo), `Tooltip`, `Toast` | parcial: `Drawer` hecho; `Toast` y `Tooltip` pendientes | ver `git log` (`feat: add Drawer`) |
 | L-12 | Migrar PliegoStack a la librería | pendiente | |
 | L-13 | Re-sincronizar el Design System desde la librería | pendiente | |
 
@@ -375,11 +376,43 @@ Requiere aprobación de Chris por las dependencias nuevas.
 
 Changeset `minor` con todo lo anterior, PR de versión y publicación. Verificar la instalación desde un proyecto vacío con `@caravenas:registry` en su `.npmrc`.
 
-## L-11 — Radix: `Drawer`, `Tooltip`, `Toast`
+## L-11 — Radix: `Drawer`, `Toast`, `Tooltip`
 
-- `Drawer` sobre `@radix-ui/react-dialog`, para el panel de catálogo, con las animaciones de `catalog-editor-in` y `catalog-editor-out`. **Atención**: PliegoStack decidió que el catálogo **no es modal** y no atrapa el foco (UX-REVIEW §5). Hay que decidir si el `Drawer` es no modal (`modal={false}`) antes de empezar.
-- `Toast` para los avisos descartables de persistencia y de huérfanos.
-- `Tooltip` solo si aparece un caso real.
+Se hace por partes. **Esta entrega es solo el `Drawer`**; `Toast` y `Tooltip` siguen pendientes (ver los no objetivos). Origen: `CatalogPanel.tsx`, `.catalog-editor*` y `.catalog-*` de PliegoStack.
+
+**Objetivo.**
+Que quien construye una herramienta con una vista principal tenga un panel lateral que entra sobre ella sin taparla ni bloquearla, con el teclado resuelto, para editar algo sin perder de vista lo que se está mirando.
+
+**Alcance.**
+- `Drawer` sobre `@radix-ui/react-dialog` con `modal={false}`: `open`, `defaultOpen`, `onOpenChange`, `title`, `closeLabel` («Cerrar» por defecto) y `children`.
+- Lo que un modal daba gratis y un panel necesita que se le diga: Escape lo cierra, el foco entra en el panel (no en el botón de cerrar) al abrir y vuelve a donde estaba al cerrar, y un clic fuera no lo cierra.
+- Entra y sale por el borde derecho con `catalog-editor-in` y `-out` como animaciones, con sus duraciones y curvas en dos tokens de movimiento nuevos (`transition-drawer-in` y `transition-drawer-out`, con su `usage`), opaco en la salida y sin movimiento con `prefers-reduced-motion`.
+- La dependencia `@radix-ui/react-dialog`, marcada como externa en el build de la librería, un changeset, stories y tests.
+
+**No objetivos.**
+- `Toast` (avisos descartables de persistencia y de huérfanos) y `Tooltip`: `Toast` no está entre los primitivos de Radix que `AGENTS.md` permite sin aprobación y `Tooltip` solo si aparece un caso real. Siguen pendientes.
+- Modalidad configurable, lado configurable o un `Drawer` en el flujo del documento como el `catalog-editor` de PliegoStack.
+- Pie, descripción o cualquier contenido del panel: lo pone el consumidor.
+- El estado de persistencia de la cabecera del catálogo («Guardado en este navegador»).
+
+**Aceptación.**
+1. Un test comprueba que cerrado no pinta nada y que abierto es un `dialog` nombrado por su título, sin `aria-modal`.
+2. Un test comprueba que Escape y el botón de cerrar llaman a `onOpenChange(false)`, y que `closeLabel` cambia su nombre accesible.
+3. Un test comprueba que no es modal: un clic en otro control no lo cierra y el resto de la página no se oculta con `aria-hidden`.
+4. Un test comprueba que el foco entra en el panel al abrir y vuelve al control que lo abrió al cerrar.
+5. Un test lee `Drawer.css` y comprueba que no hay colores, tamaños, radios ni duraciones literales fuera de las excepciones comentadas, que el movimiento sale de los tokens y que `prefers-reduced-motion` lo desactiva.
+6. Se revisa a mano en Storybook (`npm run dev`) con teclado y `pointer: coarse` emulado: entra y sale por la derecha, la vista de abajo sigue siendo manejable, el botón de cerrar mide 40/44 px y el anillo de foco de 2 px es visible.
+7. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, `src/index.ts` exporta `Drawer` y su tipo, y la única dependencia nueva es `@radix-ui/react-dialog`, externa en `dist`.
+8. Hay un changeset del cambio, y `docs/PLAN.md` actualiza la tabla de estado y la sección «Estado actual».
+
+**Rollback.** Revertir el único commit del incremento y desinstalar `@radix-ui/react-dialog`.
+
+**Decisiones ya tomadas.**
+Chris autorizó la instalación de `@radix-ui/react-dialog` (2026-10-13) y `AGENTS.md` permite Radix para `Dialog`.
+La modalidad la decide el agente al ejecutar el objetivo de completar el plan, con la evidencia del origen, y queda en «Decisiones abiertas» para que Chris la confirme: **no modal**, porque PliegoStack pasó su catálogo de diálogo modal a panel (R-24) al ver que la lámina de cristal tapaba la vista desde la que se pulsó «editar», y su `UX-REVIEW` no atrapa el foco en el interruptor de vistas.
+
+**Preguntas abiertas.**
+Ninguna impide empezar.
 
 ## L-12 — Migrar PliegoStack
 
@@ -409,7 +442,7 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 4. **Tema oscuro.** No existe. El formato lo admite (`color.themes`); decidir si se quiere antes de 1.0.
 5. **Versiones.** Se fijaron las combinaciones probadas en PliegoStack (Vite 6, React 18 en desarrollo, TS 5.6, Storybook 8.6), más Vitest 3. Ya hay versiones mayores (Vite 8, Storybook 10, TS 7). Subir en un incremento propio, no mezclado.
 6. **React 19.** `peerDependencies` lo admite, pero los tests corren en 18. Añadir una matriz 18/19 en CI cuando haya consumidor en 19.
-7. **El `Drawer` modal o no** (ver L-11).
+7. **El `Drawer` modal o no** (ver L-11). Decidido por el agente: no modal (ver la 23); confirmar.
 8. **Tratamiento del error de `Field` (L-2).** El origen pintaba el error con un borde `rgba(244, 63, 94, 0.3)`, literal que el proyecto prohíbe. Chris aprobó (2026-10-12) texto y filete izquierdo de 2 px en `color-danger-foreground`, sin tokens nuevos. Falta contrastarlo con la nota de uso de ese token en el Design System.
 9. **Margen derecho de `Select` (L-2).** Los 36 px salen de `calc(var(--space-3) + var(--space-6))` y la posición del triángulo de `var(--space-3)`, para no dejar literales. Los pesos de 1 px (borde) y 2 px (anillo y filete) se aceptan como literales, igual que en `Input`. Si el sistema prefiere un token de «margen de control», se añade en un incremento propio.
 10. **`pointer: coarse` sin emulación (L-2).** La verificación manual midió 40 px de alto, 36 px de padding, foco de 2 px con 2 px de separación y la marginalia pegada a la derecha. Los 44 px con `pointer: coarse` solo están en el CSS: no se pudo emular en el navegador.
@@ -425,3 +458,6 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 20. **`HowPanel` sin nota por defecto (L-7).** La nota «valores preliminares · confirmar con la imprenta» de PliegoStack no viaja con el componente: se pasa por `note`. Y solo con nota el panel no se pinta.
 21. **Borde del error de `Notice` (L-8).** `color-mix` al 30% de `color-danger-foreground` (ver el brief). Si se prefiere el filete izquierdo de `Field`, hay que unificar los dos errores.
 22. **Workflows sin probar (L-1).** `ci.yml` y `release.yml` se escribieron sin remoto: no se han ejecutado y no hay ninguna prueba de que `changesets/action@v1` publique en GitHub Packages con `GITHUB_TOKEN`. Verificar al crear el remoto (L-0) con un PR de prueba, y revisar si el paquete, siendo privado y con `access: restricted`, necesita permisos de paquete adicionales.
+23. **`Drawer` no modal (L-11).** Decisión del agente, con la evidencia del origen (R-24 de PliegoStack pasó el catálogo de modal a panel). Con `modal={false}` Radix no atrapa el foco ni inerta la página; Escape, la entrada y el regreso del foco se implementan en el componente. Confirmar o pasar a modal.
+24. **Ancho del `Drawer` (L-11).** `min(100%, 30rem)` es un literal comentado: no hay equivalente en la escala. El panel es una capa fija en el borde derecho, no un bloque en el flujo como el `catalog-editor` de PliegoStack; ajustar si se quiere ese comportamiento.
+25. **Auditoría de dependencias (L-11).** Tras instalar Radix `npm` avisó de 28 vulnerabilidades en 528 paquetes (11 moderadas, 15 altas, 2 críticas). `npm audit --omit=dev` da 0: son de herramientas de desarrollo (Storybook, Vite, Vitest…), no de lo que se publica. Revisar con `npm audit` cuándo actualizar esas herramientas (decisión 5).

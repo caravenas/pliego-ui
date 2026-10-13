@@ -1,0 +1,41 @@
+.pui-notice {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.pui-notice__title {
+  margin: 0;
+  font-weight: 700;
+}
+
+/*
+ * Un error se lee por sus palabras; el rojo y el borde lo refuerzan, no lo
+ * sustituyen. El borde es el rojo del token al 30% y no un rgba aparte: sigue
+ * al token si cambia y no es un color suelto.
+ */
+.pui-notice--error {
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-danger-foreground) 30%, transparent);
+  border-radius: var(--radius-md);
+  color: var(--color-danger-foreground);
+}
+
+/* Una configuración que impide arrancar: no es un aviso dentro de la pantalla, es la pantalla. */
+.pui-notice--config {
+  padding: var(--space-6);
+  font-size: var(--text-base);
+  color: var(--color-danger-foreground);
+}
+
+.pui-notice--config .pui-notice__title {
+  margin-bottom: var(--space-3);
+  font-size: var(--text-lg);
+}
+
+.pui-notice--config ul {
+  padding-left: var(--space-6);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  list-style: disc;
+}

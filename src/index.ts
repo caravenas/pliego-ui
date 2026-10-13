@@ -36,5 +36,8 @@ export type { ResultListProps, ResultRowProps } from './components/ResultList/Re
 export { HowPanel } from './components/HowPanel/HowPanel';
 export type { HowPanelProps } from './components/HowPanel/HowPanel';
 
+export { Notice } from './components/Notice/Notice';
+export type { NoticeProps, NoticeVariant } from './components/Notice/Notice';
+
 export { tokenNames, cssVar, fontFamilies, typeStyles } from './tokens';
 export type { TokenName, FontFamily, TypeStyle } from './tokens';

@@ -5,7 +5,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 ## Estado actual
 
 - Scaffold en `main` (`9db7d12`): Vite en modo librería, TS, Storybook 8.6, Vitest 3, Changesets y el pipeline de tokens.
-- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `OptionCard`, `MeasureField`, `MeasureGrid`, `SpecStep`, `ResultList`, `ResultRow` y `HowPanel`. 98 tests en verde, build y build de Storybook verificados (L-7, 2026-10-12).
+- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `OptionCard`, `MeasureField`, `MeasureGrid`, `SpecStep`, `ResultList`, `ResultRow`, `HowPanel` y `Notice`. 107 tests en verde, build y build de Storybook verificados (L-8, 2026-10-12).
 - Aún sin remoto en GitHub, sin CI y sin publicar.
 - L-0 está a medias (2026-10-12): las dependencias ya están instaladas en macOS y `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0. Falta limpiar los restos de git de la VM Linux (`.git/stale-*` y `tmp_obj_*`) y crear el remoto.
 - L-2 cerrado: `Field` (enlaza el control por `id`, error con `role="alert"`, nota al margen y nota de origen) y `Select` (desplegable nativo en cápsula, triángulo en `color-text-muted`).
@@ -14,7 +14,8 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 - L-5 cerrado: `MeasureField` y `MeasureGrid` (escribir, flechas, arrastre con captura de puntero).
 - L-6 cerrado: `SpecStep` (`<details>` numerado con valor en el estado cerrado y `open` controlado o no).
 - L-7 cerrado: `ResultList` y `ResultRow` (`<dl>` con `tabular-nums`) y `HowPanel`.
-- **Siguiente: L-8.** L-1 espera al remoto de L-0.
+- L-8 cerrado: `Notice` (note, preview, error, config) con rol según la variante. Con él están todos los componentes de la fase de diseño; lo que queda necesita a Chris o dependencias nuevas (ver L-9 en adelante).
+- **Siguiente: L-9**, que necesita aprobación por dependencias nuevas. L-1 espera al remoto de L-0.
 
 | Id | Incremento | Estado | Commit |
 | --- | --- | --- | --- |
@@ -26,8 +27,8 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-5 | `MeasureField` | hecho | ver `git log` (`feat: add MeasureField`) |
 | L-6 | `SpecStep` | hecho | ver `git log` (`feat: add SpecStep`) |
 | L-7 | `ResultList`, `ResultRow` y `HowPanel` | hecho | ver `git log` (`feat: add ResultList and HowPanel`) |
-| L-8 | `Notice` | **siguiente** | |
-| L-9 | Accesibilidad y regresión visual en CI | pendiente | |
+| L-8 | `Notice` | hecho | ver `git log` (`feat: add Notice`) |
+| L-9 | Accesibilidad y regresión visual en CI | **siguiente** (necesita aprobación) | |
 | L-10 | Primera publicación, 0.1.0 | pendiente | |
 | L-11 | Radix: `Drawer` (catálogo), `Tooltip`, `Toast` | pendiente | |
 | L-12 | Migrar PliegoStack a la librería | pendiente | |
@@ -325,7 +326,41 @@ Ninguna impide empezar.
 
 ## L-8 — `Notice`
 
-Ver § Notice. Variantes `note`, `preview`, `error` y `config`, con su rol: `status` por defecto y `alert` en `error` y `config`.
+Ver `docs/COMPONENTS.md` § Notice. Origen: `.calculation-note`, `.preview-notice`, `.calculation-error` y `.config-error*` de PliegoStack.
+
+**Objetivo.**
+Que quien construye una interfaz tenga un aviso con cuatro tonos (nota, vista previa, error y error de configuración), con el rol de lectura de pantalla que le corresponde, sin repetir las clases ni decidir en cada sitio si se anuncia con calma o al momento.
+
+**Alcance.**
+- `Notice` con `variant` (`note`, `preview`, `error`, `config`), `title?` y `children`; `forwardRef` y las props nativas.
+- El rol sale de la variante: `status` en `note` y `preview`, `alert` en `error` y `config`.
+- El error pinta su borde derivado de `color-danger-foreground` (`color-mix`) en vez del `rgba(244, 63, 94, 0.3)` de origen, sin tokens nuevos.
+- Estilos con variables y clases `pui-`, stories de las cuatro variantes, tests, export con tipos y un changeset.
+
+**No objetivos.**
+- Avisos descartables o con acción (`Toast`, L-11) ni foco gestionado.
+- Redactar los mensajes: un error dice qué regla falla, y eso lo escribe el consumidor.
+- Márgenes exteriores: los pone quien coloca el aviso.
+- Cambiar los demás componentes; tokens o dependencias nuevas; tema oscuro.
+
+**Aceptación.**
+1. Un test comprueba el rol de cada variante (`status` en `note` y `preview`, `alert` en `error` y `config`) y su clase.
+2. Un test comprueba que el título es una línea antes del texto y no un encabezado, y que sin título no hay nodo.
+3. Un test comprueba que la ref y las props nativas pasan, incluso un `role` distinto.
+4. Un test lee `Notice.css` y comprueba que no hay colores, tamaños ni radios literales, y que el borde del error se deriva de `color-danger-foreground`.
+5. Se revisa a mano en Storybook (`npm run dev`): las cuatro variantes se leen por sus palabras y no solo por el color, y el error mantiene contraste suficiente de su texto.
+6. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, `src/index.ts` exporta `Notice` y sus tipos, y no hay dependencias nuevas.
+7. Hay un changeset del cambio, y `docs/PLAN.md` actualiza la tabla de estado y la sección «Estado actual».
+
+**Rollback.** Revertir el único commit del incremento.
+
+**Decisiones ya tomadas.**
+Mandan `docs/COMPONENTS.md` y el Design System de claude.ai (Chris, 2026-10-12).
+La siguiente la toma el agente al ejecutar el objetivo de completar el plan, y queda en «Decisiones abiertas»:
+- El borde del error es `color-mix(in srgb, var(--color-danger-foreground) 30%, transparent)`: deriva del token, como pide `COMPONENTS.md`, y conserva el 30% de origen. Difiere del filete izquierdo que Chris aprobó para el error de `Field`: ahí es una línea bajo un control, aquí un aviso con caja.
+
+**Preguntas abiertas.**
+Ninguna impide empezar.
 
 ## L-9 — Accesibilidad y regresión visual en CI
 
@@ -387,3 +422,4 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 18. **Estado de `SpecStep` (L-6).** El componente lleva el estado y evita el cambio nativo del `<details>` para que `open` controle de verdad. Si se prefiere el comportamiento nativo con `onToggle`, el control deja de ser estricto. El resumen tiene el área de puntero de 40/44 px; los 44 px solo están en el CSS.
 19. **Alineación de `SpecStep` (L-6).** Con `space-7` (28 px) el valor y el cuerpo quedan a 1,6 px a la derecha del título medido en Storybook (el número de dos dígitos en mono de 12 px más el hueco de 12 px suman 26,4 px). Es el valor de PliegoStack; si se quiere alineación exacta, la sangría debería salir del ancho del número y no de un paso de la escala.
 20. **`HowPanel` sin nota por defecto (L-7).** La nota «valores preliminares · confirmar con la imprenta» de PliegoStack no viaja con el componente: se pasa por `note`. Y solo con nota el panel no se pinta.
+21. **Borde del error de `Notice` (L-8).** `color-mix` al 30% de `color-danger-foreground` (ver el brief). Si se prefiere el filete izquierdo de `Field`, hay que unificar los dos errores.

@@ -110,11 +110,50 @@ Ninguna impide empezar.
 
 ## L-3 — `SegmentedControl`
 
-Ver § SegmentedControl. Un solo componente con dos semánticas, porque PliegoStack usa el mismo dibujo para dos cosas distintas:
-- `kind="tabs"`: cambia lo que se mira (`.central-tabs`, `.central-tab`). Es un `tablist` con flechas.
-- `kind="options"`: cambia un valor (formato, proporción). Son botones con `aria-pressed`, como hoy.
+Ver `docs/COMPONENTS.md` § SegmentedControl. Un solo componente con dos semánticas, porque PliegoStack usa el mismo dibujo para dos cosas distintas.
+Origen: `.central-tabs` y `.central-tab` en `src/styles/index.css` y `CentralViewTabs` en `src/components/CentralView.tsx`. Allí el selector de vista es hoy un grupo de botones con `aria-pressed`, porque el trabajo de teclado estaba congelado; esta librería lo hace una vez.
 
-**Aceptación**: las flechas mueven la selección en `tabs`; la activa se rellena de tinta; la apuntada que no está activa se aclara; las costuras se comparten y la última no tiene borde derecho.
+**Objetivo.**
+Que quien construye una interfaz con pliego-ui tenga un selector segmentado que se maneja con el teclado como promete su semántica: cambiar de vista (`tabs`) o elegir un valor (`options`), con el dibujo del sistema.
+
+**Alcance.**
+- `SegmentedControl<V extends string>` con la API de `docs/COMPONENTS.md`: `kind`, `label`, `value`, `options` y `onChange`, más un `id` opcional que da ids estables a los segmentos (`${id}-${value}`) para que el consumidor enlace sus paneles.
+- `kind="tabs"`: `role="tablist"` con `aria-label`, cada segmento `role="tab"` con `aria-selected`. Un solo punto de tabulación (tabindex móvil), flechas izquierda y derecha con vuelta, Inicio y Fin; la flecha selecciona al mover (activación automática). El componente no pinta los paneles: los pinta el consumidor.
+- `kind="options"`: `role="radiogroup"` con `aria-label`, cada segmento `role="radio"` con `aria-checked`, el mismo tabindex móvil y las mismas teclas.
+- Los segmentos con `disabled` se saltan al navegar y no se pueden elegir.
+- Estilos en `SegmentedControl.css` solo con variables, clases `pui-` y BEM ligero, con el estilo de texto `central-tab` de los tokens (`pui-type-central-tab`).
+- Stories (tabs, options, con un segmento deshabilitado, con un segmento activo largo) y tests.
+- Export en `src/index.ts` con los tipos, un changeset, y actualizar en `docs/COMPONENTS.md` la línea de `options` y en «Decisiones abiertas» la decisión 1.
+
+**No objetivos.**
+- Paneles de pestañas (`tabpanel`) o cualquier contenido que cambie con la selección: lo aporta el consumidor.
+- `OptionField` y `OptionCard` (L-4): allí se decide su semántica por separado, aunque reutilicen el hook de teclado.
+- Selección múltiple, segmentos con icono o con contador, y orientación vertical.
+- Cambiar `Button`, `Input`, `Select` o `Field`; tokens nuevos; dependencias nuevas; tema oscuro.
+- Migrar `CentralViewTabs` de PliegoStack (L-12).
+
+**Aceptación.**
+1. Un test comprueba que `kind="tabs"` pinta un `tablist` con `aria-label`, un `tab` por opción con `aria-selected` solo en el actual, y que solo el actual tiene `tabindex="0"` (los demás `-1`).
+2. Un test comprueba con teclado en `tabs` que ArrowRight y ArrowLeft llaman a `onChange` con el vecino y vuelven al otro extremo, que Home y End van al primero y al último, que se saltan los `disabled`, y que el foco acompaña a la selección.
+3. Un test comprueba que `kind="options"` pinta un `radiogroup` con `radio` y `aria-checked`, con el mismo tabindex móvil y las mismas teclas, y que un clic o Espacio sobre un segmento llama a `onChange` con su valor.
+4. Un test comprueba que un segmento `disabled` no llama a `onChange` al hacer clic, y que si el valor actual no coincide con ninguna opción, el primer segmento no deshabilitado es el punto de tabulación.
+5. Un test lee `SegmentedControl.css` y comprueba que no hay colores, tamaños ni radios literales fuera de las excepciones comentadas (40/44 px y los pesos de 1 px y 2 px), y que no hay `border-right` en el último segmento.
+6. Se revisa a mano en Storybook (`npm run dev`) con teclado y con `pointer: coarse` emulado: 40/44 px de alto, el segmento activo relleno de tinta, el apuntado no activo en `color-bg-card-hover` y nunca sobre el activo, las costuras compartidas con la última sin borde, el anillo de foco de 2 px de `color-accent-ink` separado del borde, y el estado legible por palabras y no solo por color.
+7. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, `src/index.ts` exporta `SegmentedControl` y sus tipos, y no hay dependencias nuevas.
+8. Hay un changeset del cambio, y `docs/PLAN.md` actualiza la tabla de estado y la sección «Estado actual».
+
+**Rollback.** Revertir el único commit del incremento.
+
+**Decisiones ya tomadas.**
+Mandan `docs/COMPONENTS.md` y, sobre todo, el Design System de claude.ai (Chris, 2026-10-12).
+Las dos siguientes las propone el agente que escribió este brief y quedan confirmadas al aprobarlo:
+- Se resuelve la decisión abierta 1 para este componente a favor de la semántica real (`tablist` y `radiogroup` con tabindex móvil) y no de `aria-pressed`. Un grupo de botones pulsados no promete flechas, pero una librería se escribe una vez y la usan todos, y `tabs` ya era un `tablist` en `COMPONENTS.md`. Costo: más teclado que probar, y la migración de PliegoStack cambia el marcado de `CentralViewTabs`.
+- `tabs` activa al mover el foco (activación automática), porque los tres paneles de PliegoStack son baratos de pintar y es lo que promete «las flechas mueven la selección».
+
+**Preguntas abiertas.**
+Ninguna impide empezar.
+- El estilo `central-tab` pide mayúsculas con 0,16 em de tracking: ¿se aplica también en `options` (formato, proporción) o allí el texto va con el estilo de `form-input`? L-3 usa `central-tab` en ambos hasta que se decida.
+- ¿`OptionCard` (L-4) mantiene `aria-pressed` o pasa a `radio`? Se decide en su brief.
 
 ## L-4 — `OptionField` y `OptionCard`
 

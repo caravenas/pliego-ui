@@ -66,11 +66,46 @@ Lo hace Chris en su Mac; ningún agente puede hacerlo por él.
 
 Ver `docs/COMPONENTS.md` § Field y § Select. `Field` es la etiqueta, la nota al margen, el error y la nota inferior que hoy repiten `.form-group`, `.form-label-row`, `.form-label`, `.field-marginalia` y `.calculation-error`. `Select` es el desplegable nativo en cápsula.
 
-**Aceptación**:
-- `Field` une etiqueta y control por `id`, o con `aria-labelledby` cuando el control es un grupo.
-- El error se anuncia con `role="alert"` y se enlaza con `aria-describedby`.
-- `Select` mide 40/44 px y conserva el triángulo SVG con 36 px de margen derecho.
-- Stories: con nota al margen, con error y deshabilitado. Tests de asociación accesible.
+**Objetivo.**
+Que quien construye un formulario con pliego-ui tenga resueltos en un componente la etiqueta, la nota al margen, el error y la nota de origen de un campo, y el desplegable nativo en cápsula del sistema, sin repetir las clases ni la accesibilidad en cada proyecto.
+
+**Alcance.**
+- `Field`, con la API de `docs/COMPONENTS.md` § Field: `label`, `id`, `marginalia`, `error`, `note`, `group` y `children`. De `id` salen `${id}-label`, `${id}-error` y `${id}-note`.
+- `Select`: `<select>` nativo en cápsula, como `Input`, con `forwardRef`, las props nativas intactas, el triángulo SVG en `background-image` y 36 px de margen derecho.
+- Estilos con variables, clases `pui-` y BEM ligero, en `Field.css` y `Select.css`.
+- Stories de `Field` (con nota al margen, con error, deshabilitado) y de `Select`, y sus tests.
+- Export en `src/index.ts` con los tipos, y un changeset.
+
+**No objetivos.**
+- Un listbox propio, o búsqueda dentro del desplegable: si algún día hace falta, va con Radix y en otro componente.
+- Validar datos o llevar el estado del formulario: el consumidor aporta el valor y el texto del error.
+- Cambiar `Input`, `Button` o `Badge`.
+- Tokens nuevos, dependencias nuevas o tema oscuro.
+- El remoto y el CI (L-0 y L-1).
+
+**Aceptación.**
+1. Un test comprueba que `Field` une etiqueta y control por `id` (`getByLabelText` encuentra el control) y que, con `group`, la etiqueta es un `<span>` con `id="${id}-label"` y el grupo lleva `aria-labelledby` apuntándole.
+2. Un test comprueba que `error` se pinta con `role="alert"` y el id `${id}-error`, que el control lo nombra en `aria-describedby` junto al de la nota si la hay, y que sin error ni nota el control no lleva `aria-describedby`.
+3. Un test comprueba que con `marginalia={null}` no queda ningún nodo en el DOM, y que el nombre accesible de la etiqueta es el texto escrito en minúsculas: las versalitas las pone el CSS.
+4. Un test comprueba que `Select` es un `<select>` nativo con la clase de cápsula, reenvía la ref y deja pasar `value`, `onChange`, `name` y `disabled`.
+5. Un test lee `Field.css` y `Select.css` y comprueba que no hay colores, tamaños ni radios literales fuera de las excepciones comentadas (`9999px`, 40/44 px), y que el color del triángulo coincide con el valor de `color-text-muted` en `tokens/tokens.json`.
+6. Se revisa a mano en Storybook (`npm run dev`) con teclado y con `pointer: coarse` emulado: 40/44 px de alto, el triángulo a 36 px del borde derecho, el anillo de foco de 2 px separado del borde, la nota al margen pegada a la derecha, y el error legible con palabras y no solo por color.
+7. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, `src/index.ts` exporta `Field`, `Select` y sus tipos, y no hay dependencias nuevas.
+8. Hay un changeset del cambio, y `docs/PLAN.md` actualiza la tabla de estado y la sección «Estado actual».
+
+**Rollback.** Revertir el único commit del incremento.
+
+**Decisiones ya tomadas.**
+Mandan `docs/COMPONENTS.md` y, sobre todo, el Design System de claude.ai (Chris, 2026-10-12).
+Las tres siguientes las propone el agente que escribió este brief y quedan confirmadas al aprobarlo:
+- `Field` enlaza el control clonando su único hijo elemento: le añade `id`, `aria-describedby` y, si hay error, `aria-invalid`. Con `group` envuelve a los hijos en un `role="group"` con `aria-labelledby`. Si `children` no es un único elemento, no inyecta nada y el consumidor usa los ids derivados.
+- El triángulo de `Select` usa `color-text-muted` y no el `#94a3b8` literal de origen: 5,15:1 frente a 2,6:1, y el Design System pide 3:1 para el dibujo de un control.
+- `Select` no cambia el fondo al enfocar: el foco es solo el anillo, como dice la nota de `color-bg-input-focus` en `tokens.json`.
+
+**Preguntas abiertas.**
+Ninguna impide empezar.
+- `Input` sí cambia el fondo al enfocar (`rgba(255, 255, 255, 0.5)`, literal), lo que contradice la regla de colores literales del proyecto y esa misma nota del Design System. Está fuera de L-2: ¿se corrige en un incremento propio?
+- El README del Design System dice que los campos van con «fondo transparente», y `color-bg-input` (`#ffffff`) se describe como «fondo de campos». L-2 sigue a `Input` (transparente) hasta que se decida cuál manda.
 
 ## L-3 — `SegmentedControl`
 

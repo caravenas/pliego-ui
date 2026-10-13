@@ -1,0 +1,9 @@
+{
+  "_comment": [
+    "Created by ~/.agents/workflows/scripts/verify.sh the first time an agent worked in this repository.",
+    "protected_paths: the verification contract and this declaration, which an agent could otherwise edit so its own work passes. Chris edits them by hand.",
+    "worktree_symlinks: top-level ignored directories a worktree needs; none declared yet."
+  ],
+  "protected_paths": [".verify.conf", ".agents/policy.json"],
+  "worktree_symlinks": []
+}

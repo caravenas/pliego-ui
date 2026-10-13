@@ -5,7 +5,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 ## Estado actual
 
 - Scaffold en `main` (`9db7d12`): Vite en modo librería, TS, Storybook 8.6, Vitest 3, Changesets y el pipeline de tokens.
-- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `OptionCard`, `MeasureField`, `MeasureGrid`, `SpecStep`, `ResultList`, `ResultRow`, `HowPanel`, `Notice` y `Drawer`. 115 tests en verde, build y build de Storybook verificados (L-11 parcial, 2026-10-13).
+- Primitivos hechos: `Button` (primary, secondary, outline, danger; forma `round`), `Badge` / `OriginBadge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `OptionCard`, `MeasureField`, `MeasureGrid`, `SpecStep`, `ResultList`, `ResultRow`, `HowPanel`, `Notice`, `Drawer` y `Toast`. 124 tests en verde, build y build de Storybook verificados (L-11, 2026-10-13).
 - Aún sin remoto en GitHub, sin CI y sin publicar.
 - L-0 está a medias (2026-10-12): las dependencias ya están instaladas en macOS y `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0. Falta limpiar los restos de git de la VM Linux (`.git/stale-*` y `tmp_obj_*`) y crear el remoto.
 - L-2 cerrado: `Field` (enlaza el control por `id`, error con `role="alert"`, nota al margen y nota de origen) y `Select` (desplegable nativo en cápsula, triángulo en `color-text-muted`).
@@ -16,7 +16,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 - L-7 cerrado: `ResultList` y `ResultRow` (`<dl>` con `tabular-nums`) y `HowPanel`.
 - L-8 cerrado: `Notice` (note, preview, error, config) con rol según la variante. Con él están todos los componentes de la fase de diseño; lo que queda necesita a Chris o dependencias nuevas (ver L-9 en adelante).
 - L-1 escrito (`.github/workflows/ci.yml` y `release.yml`), pero **sin ejecutar nunca**: su aceptación (un PR en verde, el release sin publicar) necesita el remoto de L-0.
-- L-11, parcial: `Drawer` no modal sobre Radix Dialog (dependencia autorizada por Chris el 2026-10-13). Faltan `Toast` y `Tooltip`.
+- L-11, parcial: `Drawer` no modal sobre Radix Dialog y `Toast` sobre Radix Toast (dependencias autorizadas por Chris el 2026-10-13). Falta `Tooltip`, que solo se hace si aparece un caso real.
 - **Siguiente: L-9**, que necesita aprobación por dependencias nuevas.
 
 | Id | Incremento | Estado | Commit |
@@ -32,7 +32,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-8 | `Notice` | hecho | ver `git log` (`feat: add Notice`) |
 | L-9 | Accesibilidad y regresión visual en CI | **siguiente** (necesita aprobación) | |
 | L-10 | Primera publicación, 0.1.0 | pendiente | |
-| L-11 | Radix: `Drawer` (catálogo), `Tooltip`, `Toast` | parcial: `Drawer` hecho; `Toast` y `Tooltip` pendientes | ver `git log` (`feat: add Drawer`) |
+| L-11 | Radix: `Drawer` (catálogo), `Tooltip`, `Toast` | parcial: `Drawer` y `Toast` hechos; `Tooltip` pendiente (solo con un caso real) | ver `git log` (`feat: add Drawer`, `feat: add Toast`) |
 | L-12 | Migrar PliegoStack a la librería | pendiente | |
 | L-13 | Re-sincronizar el Design System desde la librería | pendiente | |
 
@@ -378,38 +378,45 @@ Changeset `minor` con todo lo anterior, PR de versión y publicación. Verificar
 
 ## L-11 — Radix: `Drawer`, `Toast`, `Tooltip`
 
-Se hace por partes. **Esta entrega es solo el `Drawer`**; `Toast` y `Tooltip` siguen pendientes (ver los no objetivos). Origen: `CatalogPanel.tsx`, `.catalog-editor*` y `.catalog-*` de PliegoStack.
+Se hace por partes. **Entregado: `Drawer` y `Toast`**; `Tooltip` sigue pendiente porque solo se hace si aparece un caso real. Origen del `Drawer`: `CatalogPanel.tsx`, `.catalog-editor*` y `.catalog-*` de PliegoStack; el `Toast` no tiene origen, porque PliegoStack no tiene avisos descartables.
 
 **Objetivo.**
-Que quien construye una herramienta con una vista principal tenga un panel lateral que entra sobre ella sin taparla ni bloquearla, con el teclado resuelto, para editar algo sin perder de vista lo que se está mirando.
+Que quien construye una herramienta con una vista principal tenga un panel lateral que entra sobre ella sin taparla ni bloquearla, y avisos que se descartan sin interrumpir lo que se está haciendo, con el teclado y los lectores de pantalla resueltos.
 
 **Alcance.**
 - `Drawer` sobre `@radix-ui/react-dialog` con `modal={false}`: `open`, `defaultOpen`, `onOpenChange`, `title`, `closeLabel` («Cerrar» por defecto) y `children`.
 - Lo que un modal daba gratis y un panel necesita que se le diga: Escape lo cierra, el foco entra en el panel (no en el botón de cerrar) al abrir y vuelve a donde estaba al cerrar, y un clic fuera no lo cierra.
-- Entra y sale por el borde derecho con `catalog-editor-in` y `-out` como animaciones, con sus duraciones y curvas en dos tokens de movimiento nuevos (`transition-drawer-in` y `transition-drawer-out`, con su `usage`), opaco en la salida y sin movimiento con `prefers-reduced-motion`.
-- La dependencia `@radix-ui/react-dialog`, marcada como externa en el build de la librería, un changeset, stories y tests.
+- El `Drawer` entra y sale por el borde derecho con `catalog-editor-in` y `-out` como animaciones, con sus duraciones y curvas en dos tokens de movimiento nuevos (`transition-drawer-in` y `transition-drawer-out`, con su `usage`), opaco en la salida y sin movimiento con `prefers-reduced-motion`.
+- `ToastProvider` (lleva la región de avisos, con nombre «Avisos (F8)») y `Toast` sobre `@radix-ui/react-toast`: `open`, `defaultOpen`, `onOpenChange`, `variant` (`note` o `error`), `title`, `duration`, `closeLabel`, `action` y `children`.
+- Una `note` del `Toast` se va sola a los 5 s y se anuncia con calma; un `error` no se va solo (`Infinity`) y se anuncia al momento; `duration` lo sustituye. Se descarta con el botón o con el dedo, y la acción opcional llama a `onAction`.
+- El `Toast` tiene el tratamiento visual de `Notice` (borde de tinta; el del error, derivado de `color-danger-foreground`), sin sombra porque el sistema las desactiva, y entra y sale con `transition-normal`, que estaba declarado sin uso.
+- Las dependencias `@radix-ui/react-dialog` y `@radix-ui/react-toast`, externas en el build de la librería, dos changesets, stories y tests.
 
 **No objetivos.**
-- `Toast` (avisos descartables de persistencia y de huérfanos) y `Tooltip`: `Toast` no está entre los primitivos de Radix que `AGENTS.md` permite sin aprobación y `Tooltip` solo si aparece un caso real. Siguen pendientes.
-- Modalidad configurable, lado configurable o un `Drawer` en el flujo del documento como el `catalog-editor` de PliegoStack.
-- Pie, descripción o cualquier contenido del panel: lo pone el consumidor.
-- El estado de persistencia de la cabecera del catálogo («Guardado en este navegador»).
+- `Tooltip`: solo si aparece un caso real, como dice el plan.
+- Modalidad o lado configurables del `Drawer`, o un `Drawer` en el flujo del documento como el `catalog-editor` de PliegoStack.
+- Pie, descripción o contenido del `Drawer`, y el estado de persistencia de la cabecera del catálogo: los pone el consumidor.
+- Una API imperativa de avisos (`toast(...)`, una cola global), posición configurable o apilado con límite.
+- Redactar los mensajes de los avisos.
 
 **Aceptación.**
-1. Un test comprueba que cerrado no pinta nada y que abierto es un `dialog` nombrado por su título, sin `aria-modal`.
-2. Un test comprueba que Escape y el botón de cerrar llaman a `onOpenChange(false)`, y que `closeLabel` cambia su nombre accesible.
-3. Un test comprueba que no es modal: un clic en otro control no lo cierra y el resto de la página no se oculta con `aria-hidden`.
-4. Un test comprueba que el foco entra en el panel al abrir y vuelve al control que lo abrió al cerrar.
-5. Un test lee `Drawer.css` y comprueba que no hay colores, tamaños, radios ni duraciones literales fuera de las excepciones comentadas, que el movimiento sale de los tokens y que `prefers-reduced-motion` lo desactiva.
-6. Se revisa a mano en Storybook (`npm run dev`) con teclado y `pointer: coarse` emulado: entra y sale por la derecha, la vista de abajo sigue siendo manejable, el botón de cerrar mide 40/44 px y el anillo de foco de 2 px es visible.
-7. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, `src/index.ts` exporta `Drawer` y su tipo, y la única dependencia nueva es `@radix-ui/react-dialog`, externa en `dist`.
-8. Hay un changeset del cambio, y `docs/PLAN.md` actualiza la tabla de estado y la sección «Estado actual».
+1. Un test comprueba que el `Drawer` cerrado no pinta nada y que abierto es un `dialog` nombrado por su título, sin `aria-modal`.
+2. Un test comprueba que en el `Drawer` Escape y el botón de cerrar llaman a `onOpenChange(false)` y que `closeLabel` cambia el nombre del botón.
+3. Un test comprueba que el `Drawer` no es modal (un clic en otro control no lo cierra y la página no se oculta con `aria-hidden`) y que el foco entra en el panel al abrir y vuelve al control que lo abrió.
+4. Un test comprueba que la región de avisos tiene nombre, que el `Toast` muestra título y texto, que descartarlo pide cerrar y lo quita, que `closeLabel` cambia su nombre y que la acción llama a `onAction`.
+5. Un test comprueba que el `Toast` controlado sigue a `open`, que una nota se va sola pasado su `duration` y que un error sigue abierto 60 s después.
+6. Un test lee `Drawer.css` y `Toast.css` y comprueba que no hay colores, tamaños, radios ni duraciones literales fuera de las excepciones comentadas, que el movimiento sale de los tokens y que `prefers-reduced-motion` lo desactiva.
+7. Se revisa a mano en Storybook (`npm run dev`) con teclado y `pointer: coarse` emulado: el `Drawer` entra y sale por la derecha y la vista de abajo sigue manejable, el `Toast` entra por abajo a la derecha, el error se lee por sus palabras y sigue abierto, los botones miden 40/44 px y el anillo de foco de 2 px es visible.
+8. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, `src/index.ts` exporta `Drawer`, `Toast`, `ToastProvider` y sus tipos, y las únicas dependencias nuevas son `@radix-ui/react-dialog` y `@radix-ui/react-toast`, externas en `dist`.
+9. Hay un changeset por entrega, y `docs/PLAN.md` actualiza la tabla de estado y la sección «Estado actual».
 
-**Rollback.** Revertir el único commit del incremento y desinstalar `@radix-ui/react-dialog`.
+**Rollback.** Revertir los commits del `Drawer` y del `Toast` y desinstalar `@radix-ui/react-dialog` y `@radix-ui/react-toast`.
 
 **Decisiones ya tomadas.**
-Chris autorizó la instalación de `@radix-ui/react-dialog` (2026-10-13) y `AGENTS.md` permite Radix para `Dialog`.
-La modalidad la decide el agente al ejecutar el objetivo de completar el plan, con la evidencia del origen, y queda en «Decisiones abiertas» para que Chris la confirme: **no modal**, porque PliegoStack pasó su catálogo de diálogo modal a panel (R-24) al ver que la lámina de cristal tapaba la vista desde la que se pulsó «editar», y su `UX-REVIEW` no atrapa el foco en el interruptor de vistas.
+Chris autorizó la instalación de `@radix-ui/react-dialog` (2026-10-13), y aprobó `@radix-ui/react-toast` el mismo día.
+Las siguientes las toma el agente al ejecutar el objetivo de completar el plan, y quedan en «Decisiones abiertas» para que Chris las confirme:
+- El `Drawer` es **no modal**, con la evidencia del origen: PliegoStack pasó su catálogo de diálogo modal a panel (R-24) al ver que la lámina de cristal tapaba la vista desde la que se pulsó «editar», y su `UX-REVIEW` no atrapa el foco en el interruptor de vistas.
+- Un `Toast` de error no se va solo, porque un mensaje que desaparece a los 5 s no lo lee quien tarda más; y el `Toast` no tiene API imperativa.
 
 **Preguntas abiertas.**
 Ninguna impide empezar.
@@ -461,3 +468,6 @@ Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui»)
 23. **`Drawer` no modal (L-11).** Decisión del agente, con la evidencia del origen (R-24 de PliegoStack pasó el catálogo de modal a panel). Con `modal={false}` Radix no atrapa el foco ni inerta la página; Escape, la entrada y el regreso del foco se implementan en el componente. Confirmar o pasar a modal.
 24. **Ancho del `Drawer` (L-11).** `min(100%, 30rem)` es un literal comentado: no hay equivalente en la escala. El panel es una capa fija en el borde derecho, no un bloque en el flujo como el `catalog-editor` de PliegoStack; ajustar si se quiere ese comportamiento.
 25. **Auditoría de dependencias (L-11).** Tras instalar Radix `npm` avisó de 28 vulnerabilidades en 528 paquetes (11 moderadas, 15 altas, 2 críticas). `npm audit --omit=dev` da 0: son de herramientas de desarrollo (Storybook, Vite, Vitest…), no de lo que se publica. Revisar con `npm audit` cuándo actualizar esas herramientas (decisión 5).
+26. **`Toast` sin API imperativa (L-11).** Se controla con `open`, como `Drawer`. Un `toast(...)` global con cola sería más cómodo para quien avisa desde cualquier sitio, pero añade estado global y una API que PliegoStack no usa. Confirmar o pedirlo.
+27. **Errores que no se van solos (L-11).** Un `Toast` de error usa `duration` infinita: se queda hasta descartarlo. Si apilar varios errores resulta molesto, habrá que limitar la cola. Los 44 px con `pointer: coarse` solo están en el CSS (no se emuló).
+28. **Captura de puntero en el setup de tests (L-11).** `src/test/setup.ts` define `hasPointerCapture`, `setPointerCapture` y `releasePointerCapture` como no-ops porque jsdom no las trae y Radix las usa; los tests de `MeasureField` las sustituyen con sus propios mocks.

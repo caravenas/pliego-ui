@@ -42,5 +42,8 @@ export type { NoticeProps, NoticeVariant } from './components/Notice/Notice';
 export { Drawer } from './components/Drawer/Drawer';
 export type { DrawerProps } from './components/Drawer/Drawer';
 
+export { Toast, ToastProvider } from './components/Toast/Toast';
+export type { ToastProps, ToastProviderProps } from './components/Toast/Toast';
+
 export { tokenNames, cssVar, fontFamilies, typeStyles } from './tokens';
 export type { TokenName, FontFamily, TypeStyle } from './tokens';

@@ -9,7 +9,7 @@
     {
       "name": "transition-normal",
       "value": "250ms cubic-bezier(0.4, 0, 0.2, 1)",
-      "usage": "Declarado; sin uso todavía."
+      "usage": "La entrada y la salida de un aviso (Toast)."
     },
     {
       "name": "transition-slow",

@@ -69,8 +69,8 @@ interface SegmentedControlProps<V extends string> {
 - Se dibuja como un rectángulo recortado: borde de tinta en el grupo, costura `border-right` entre segmentos y ninguna en el último.
 - 40 px de alto mínimo. Texto con el estilo `central-tab`.
 - El activo se rellena de tinta; el apuntado que no está activo pasa a `color-bg-card-hover`.
-- `tabs`: `role="tablist"`, un solo punto de tabulación, flechas izquierda y derecha con vuelta, Inicio y Fin; la flecha selecciona al mover. No pinta los paneles.
-- `options`: `role="radiogroup"` con `role="radio"` y `aria-checked`, con el mismo teclado.
+- `tabs`: `role="tablist"`, un solo punto de tabulación, flechas izquierda y derecha con vuelta, Inicio y Fin; la flecha selecciona al mover. No responde a arriba y abajo. No pinta los paneles.
+- `options`: `role="radiogroup"` con `role="radio"` y `aria-checked`, con el mismo teclado y además arriba y abajo, como un radiogroup nativo.
 - `id` opcional: da a cada segmento el id `${id}-${value}`. Los segmentos `disabled` se saltan al navegar.
 
 ## OptionField / OptionCard (L-4)
@@ -80,6 +80,7 @@ interface SegmentedControlProps<V extends string> {
   - `OptionField`: `{ label, id, marginalia?, columns = 3, layout: 'grid' | 'scale', fromCatalog?, error?, note?, children }`. Debería componerse sobre `Field` con `group`.
   - `OptionCard`: `{ name, detail?, figure?, selected, disabledReason?, onSelect, id?, row?, ariaLabel?, title?, variant: 'card' | 'notch' }`.
 - `--option-columns` decide las columnas.
+- Toda tarjeta mide 40 px de alto como mínimo (44 con `pointer: coarse`), también la marca de una escala (`variant="notch"`); su número queda pegado a la marca, no en una fila común.
 - Estados:
   - Elegida: tinta con el texto en `color-bg-primary`.
   - Apuntada: `color-bg-card-hover`, **nunca** sobre la elegida.

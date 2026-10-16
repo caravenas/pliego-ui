@@ -32,8 +32,11 @@ export async function openStory(page: Page, id: string): Promise<void> {
   // `sb-show-main` se pone antes de que React monte la story: hay que esperar a
   // que haya algo que medir (la raíz, o un portal como el de Drawer). Sin esto
   // las pruebas podían medir una página vacía y pasar sin comprobar nada.
-  if (!(await page.evaluate(() => document.body.classList.contains('sb-show-errordisplay')))) {
-    await page.waitForSelector('#storybook-root > *, [role="dialog"]', { state: 'attached', timeout: 10_000 });
+  // Una story rota no se mide: sin este fallo, las pruebas de áreas y de axe
+  // la darían por buena al no encontrar ningún control.
+  if (await page.evaluate(() => document.body.classList.contains('sb-show-errordisplay'))) {
+    throw new Error(`La story ${id} no se pudo renderizar (Storybook muestra su pantalla de error).`);
   }
+  await page.waitForSelector('#storybook-root > *, [role="dialog"]', { state: 'attached', timeout: 10_000 });
   await page.evaluate(() => document.fonts.ready);
 }

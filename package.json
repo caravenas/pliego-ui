@@ -42,6 +42,8 @@
     "build-storybook": "npm run tokens && storybook build",
     "pretest:a11y": "npm run build-storybook",
     "test:a11y": "playwright test e2e/a11y.spec.ts",
+    "pretest:touch": "npm run build-storybook",
+    "test:touch": "playwright test e2e/touch-targets.spec.ts",
     "pretest:visual": "npm run build-storybook",
     "test:visual": "playwright test e2e/visual.spec.ts",
     "test:visual:update": "playwright test e2e/visual.spec.ts --update-snapshots",

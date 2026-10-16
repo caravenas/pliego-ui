@@ -33,11 +33,12 @@ jobs:
       - run: npm run build
       - run: npm run build-storybook
 
-      # axe sobre cada story del Storybook ya compilado; una violación falla.
+      # axe y áreas de puntero (40 px, 44 px con puntero grueso) sobre cada story del
+      # Storybook ya compilado; una violación falla.
       # Las capturas (test:visual) no se ejecutan aquí: sus referencias son de
       # macOS y una captura de otro sistema no es comparable (ver PLAN.md).
       - run: npx playwright install --with-deps chromium
-      - run: npx playwright test e2e/a11y.spec.ts
+      - run: npx playwright test e2e/a11y.spec.ts e2e/touch-targets.spec.ts
 
       - uses: actions/upload-artifact@v4
         if: failure()

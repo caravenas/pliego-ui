@@ -1,5 +1,7 @@
 .pui-option-card {
   box-sizing: border-box;
+  /* 40px de alto mínimo, también la marca de una escala: antes solo lo cumplía con puntero grueso. */
+  min-height: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -147,6 +149,11 @@
   min-height: 0;
   align-items: flex-end;
   width: 100%;
+}
+
+.pui-option-card--notch .pui-option-card__text {
+  /* Sin crecer: con el alto mínimo, el número seguiría pegado a su marca en vez de bajar a una fila común. */
+  flex: 0 0 auto;
 }
 
 .pui-option-card--notch .pui-option-card__name {

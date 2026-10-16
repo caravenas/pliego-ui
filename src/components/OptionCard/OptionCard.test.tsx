@@ -64,13 +64,17 @@ describe('CSS de OptionCard', () => {
   const code = css.replace(/\/\*[\s\S]*?\*\//g, '');
   // Excepciones comentadas en el CSS: la caja del dibujo (34px), el paso fino
   // del texto (2px), los pesos de 1px y 2px, y el área de 44px.
-  const allowedSizes = new Set(['34px', '2px', '1px', '44px']);
+  const allowedSizes = new Set(['34px', '2px', '1px', '40px', '44px']);
 
   it('no tiene colores, tamaños ni radios literales', () => {
     expect(code.match(/#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/g) ?? []).toEqual([]);
     const sizes = code.match(/-?\d*\.?\d+(?:px|rem|em)\b/g) ?? [];
     expect(sizes.filter((size) => !allowedSizes.has(size))).toEqual([]);
     expect(code).not.toMatch(/border-radius:\s*[1-9]/);
+  });
+
+  it('toda tarjeta, también la marca de una escala, mide 40px de alto como mínimo', () => {
+    expect(code).toMatch(/\.pui-option-card\s*\{[^}]*min-height:\s*40px/);
   });
 
   it('el realce de puntero nunca se aplica a la elegida', () => {

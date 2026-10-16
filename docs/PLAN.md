@@ -38,7 +38,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-10 | Primera publicación, 0.1.0 | hecho (publicado e instalado desde un proyecto vacío, 2026-10-13) | `e10826c`, tag `v0.1.0` |
 | L-11 | Radix: `Drawer` (catálogo), `Tooltip`, `Toast` | parcial: `Drawer` y `Toast` hechos; `Tooltip` pendiente (solo con un caso real) | ver `git log` (`feat: add Drawer`, `feat: add Toast`) |
 | L-12 | Migrar PliegoStack a la librería | descartado (Chris, 2026-10-13): es trabajo del proyecto PliegoStack | |
-| L-13 | Re-sincronizar el Design System desde la librería | pendiente | |
+| L-13 | Re-sincronizar el Design System desde la librería | en curso (brief aprobado en parte el 2026-10-15; publicar necesita confirmación) | |
 
 Orden razonado: primero la red de seguridad (CI), luego los primitivos de formulario que todo lo demás usa (`Field`), luego los patrones propios en el orden en que aparecen en la ficha técnica, y solo entonces publicar y migrar. Radix entra cuando haga falta, no antes.
 
@@ -458,13 +458,50 @@ Ninguna impide empezar.
 
 ## L-13 — Re-sincronizar el Design System
 
-Desde la librería, ya no desde la app.
-- `tokens/tokens.json` se sube tal cual: tiene el mismo formato.
-- Los previews pasan de estáticos a **vivos**. Se construye un `bundle.js` IIFE que lee `window.React` y `window.ReactDOM` y asigna `window.PliegoUI`, y se publica junto a `styles.css` como `components/bundle.css`.
-- Los READMEs de componente salen de `docs/COMPONENTS.md`.
-- Se corrige `ResultList` a `<dl>`.
+Se publica **en el artifact de claude.ai** (https://claude.ai/artifact/81WGnnxqtHUGnc6yK9DAHe), que es la referencia principal de estilo; desde ahora lo produce la librería y no la app. El artifact se leyó el 2026-10-15: es de tipo «Design System», tiene 42 archivos, doce tarjetas de componente con previews estáticos sobre una copia de la hoja de estilos de PliegoStack (`components/bundle.css`), sin `bundle.js`, y su `tokens.json` es de la sincronización del 2026-09-23 (`master@5b1354e`).
 
-Se puede hacer desde Cowork («re-sincroniza el Design System desde pliego-ui») o con el skill `appifacts-design-system-from-code` en Claude Code, si está instalado.
+**Objetivo.**
+Que el Design System de claude.ai describa y muestre la librería que existe, con previews vivos de sus componentes reales, para que lo que Chris ve en el artifact y lo que instala el paquete `0.1.0` sean lo mismo.
+
+**Alcance.**
+- Un productor reproducible dentro de la librería: `scripts/build-design-system.ts` y `npm run ds:build`, que escriben la carpeta `design-system/` (ignorada por git) con el árbol `project/` que pide el tipo.
+- `components/bundle.js`: un IIFE clásico que lee `window.React` y `window.ReactDOM` y asigna `window.PliegoUI`, con el jsx runtime sustituido por una capa sobre `createElement`, con su cabecera `@ds-bundle` y dentro del tope de 6 MB. Se construye con el `vite build` de la librería, sin dependencias nuevas.
+- `components/bundle.css`: la hoja de estilos de la librería (`dist/styles.css`, con los tokens) seguida de la hoja actual del artifact sin tocar, para que las tarjetas que se conservan mantengan su aspecto.
+- Una tarjeta nueva por componente de la librería, con `README.md` y `preview.html` vivo: `Button`, `Badge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `MeasureField`, `SpecStep`, `ResultList`, `HowPanel`, `Notice`, `Drawer` y `Toast`. Los READMEs salen de `docs/COMPONENTS.md` con su frase de resumen. `ResultList` pasa a `<dl>`.
+- `tokens.json` de la librería, tal cual, y `components/index.d.ts` con los tipos.
+- Actualizar `project/README.md` donde ya es falso (el escalón `space-7` ya existe, hay `bundle.js`, el movimiento ya se usa en `Drawer` y `Toast`) y su sección «No sincronizado»; conservar el resto de la prosa. Índice con `namespace` `PliegoUI`, `libraries` de React 18 y `lastChange` con `via` «GitHub · caravenas/pliego-ui@<sha>».
+- Una copia de seguridad local de los 42 archivos actuales antes de publicar.
+- Una comprobación con Playwright (`npm run ds:check`) que abre cada preview en un navegador con React 18 y exige que se pinte sin errores de consola y sin violaciones de axe.
+
+**No objetivos.**
+- Tocar el repositorio de PliegoStack o migrar nada de él (L-12 está descartado).
+- Tocar las tarjetas `AppHeader`, `CatalogBoard`, `CatalogPanel` y `Panel`, ni la cubierta, que se conservan tal cual.
+- Borrar archivos del artifact sin tu confirmación, o reescribir la prosa de marca del `README.md` más allá de lo que ya es falso.
+- Publicar los previews como sitio propio; es el artifact quien los sirve.
+- Un tema oscuro o tokens nuevos.
+- Subir fuentes: Inter, Outfit y JetBrains Mono se siguen cargando desde Google Fonts.
+
+**Aceptación.**
+1. `npm run ds:build` termina en 0 y la salida cumple el formato del tipo: `components/bundle.js` empieza por su cabecera `@ds-bundle`, es un script clásico sin `</script` ni `<!--` y pesa menos de 6 MB, y cada tarjeta tiene su `README.md` y su `preview.html` con la línea `@dsCard`.
+2. `npm run ds:check` termina en 0: cada preview se pinta con `window.PliegoUI` y React 18 sin errores de consola, y pasa axe sin violaciones.
+3. Un test de Vitest comprueba que `window.PliegoUI` exporta los 18 componentes de `src/index.ts` y que `tokens.json` de la salida es idéntico al de `tokens/tokens.json`.
+4. Tras publicar, una lectura de vuelta del artifact muestra los archivos cambiados con el contenido de `design-system/` y la versión anterior intacta en la copia de seguridad.
+5. Se revisa a mano en el artifact abierto en el navegador: las tarjetas muestran los componentes vivos, `ResultList` es una `<dl>` y la cubierta se mantiene.
+6. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, y no hay dependencias nuevas.
+7. `docs/PLAN.md` actualiza la tabla de estado y la sección «Estado actual», y hay un único commit con el productor.
+
+**Rollback.** Revertir el commit del productor, y republicar en el artifact la copia de seguridad de `design-system/backup-2026-10-15/`.
+
+**Decisiones ya tomadas.**
+Mandan `docs/COMPONENTS.md` y el Design System de claude.ai (Chris, 2026-10-12). Chris pidió continuar con L-13 el 2026-10-15.
+Las siguientes las propone el agente que escribió este brief y quedan confirmadas al aprobarlo:
+- El `namespace` del bundle es `PliegoUI`, como decía el plan, y no el actual `PliegoStack`.
+- Se usa el `vite build` de la librería (formato IIFE) y no `esbuild` ni `bun`, que no son dependencias declaradas.
+- Las tarjetas de vistas de la app (`AppHeader`, `CatalogBoard`, `CatalogPanel`, `Panel`) se dejan como están, estáticas (Chris, 2026-10-15).
+- Las cuatro tarjetas que la librería reemplaza con otro nombre se sustituyen: se borran `FormField`, `OptionGroup`, `CentralTabs` y `Notices`, y se crean `Field`, `OptionField`, `SegmentedControl` y `Notice`; la copia de seguridad conserva las antiguas (Chris, 2026-10-15). `HowPanel`, `MeasureField`, `ResultList` y `SpecStep` conservan su nombre y se sobrescriben.
+
+**Preguntas abiertas.**
+Ninguna impide empezar.
 
 ---
 

@@ -39,7 +39,7 @@ function SegmentedControlImpl<V extends string>(
   const tabStop = tabStopValue(options, value);
 
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, from: V) => {
-    const next = nextValue(options, from, event.key);
+    const next = nextValue(options, from, event.key, !isTabs);
     if (next === undefined) return;
     event.preventDefault();
     segments.current.get(next)?.focus();

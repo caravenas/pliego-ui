@@ -17,16 +17,25 @@ export function tabStopValue<V extends string>(options: RovingOption<V>[], value
 /**
  * A qué segmento lleva una tecla desde `from`, o `undefined` si la tecla no
  * navega. Salta los deshabilitados, da la vuelta en los extremos, y Inicio y
- * Fin van al primer y al último que se puedan elegir.
+ * Fin van al primer y al último que se puedan elegir. Un `radiogroup`
+ * (`vertical`) responde también a arriba y abajo, como el nativo; un
+ * `tablist` horizontal, no.
  */
-export function nextValue<V extends string>(options: RovingOption<V>[], from: V, key: string): V | undefined {
+export function nextValue<V extends string>(
+  options: RovingOption<V>[],
+  from: V,
+  key: string,
+  vertical = false,
+): V | undefined {
   const enabled = options.filter((option) => !option.disabled);
   if (enabled.length === 0) return undefined;
   if (key === 'Home') return enabled[0].value;
   if (key === 'End') return enabled[enabled.length - 1].value;
-  if (key !== 'ArrowRight' && key !== 'ArrowLeft') return undefined;
+  const forward = key === 'ArrowRight' || (vertical && key === 'ArrowDown');
+  const backward = key === 'ArrowLeft' || (vertical && key === 'ArrowUp');
+  if (!forward && !backward) return undefined;
 
-  const step = key === 'ArrowRight' ? 1 : -1;
+  const step = forward ? 1 : -1;
   const start = options.findIndex((option) => option.value === from);
   for (let i = 1; i <= options.length; i += 1) {
     const candidate = options[(((start + step * i) % options.length) + options.length) % options.length];

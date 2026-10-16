@@ -140,6 +140,28 @@ describe('SegmentedControl · options', () => {
   });
 });
 
+describe('SegmentedControl · flechas verticales', () => {
+  it('options responde a arriba y abajo, como un radiogroup nativo, con vuelta', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Harness kind="options" onChange={onChange} />);
+    await user.tab();
+    await user.keyboard('{ArrowDown}');
+    expect(onChange).toHaveBeenLastCalledWith('b');
+    await user.keyboard('{ArrowUp}{ArrowUp}');
+    expect(onChange).toHaveBeenLastCalledWith('c');
+  });
+
+  it('tabs no responde a arriba y abajo: un tablist horizontal solo usa izquierda y derecha', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Harness kind="tabs" onChange={onChange} />);
+    await user.tab();
+    await user.keyboard('{ArrowDown}{ArrowUp}');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
 describe('SegmentedControl · deshabilitados', () => {
   it('un segmento deshabilitado no llama a onChange al hacer clic', async () => {
     const user = userEvent.setup();

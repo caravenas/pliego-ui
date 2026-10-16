@@ -6,7 +6,7 @@ Nació del sistema de diseño de PliegoStack, que es su origen y uno de sus posi
 ## Qué manda sobre el estilo
 
 Manda `docs/COMPONENTS.md` y, sobre todo, el Design System de claude.ai (https://claude.ai/artifact/81WGnnxqtHUGnc6yK9DAHe).
-Si los dos se contradicen, no elijas en silencio: anótalo en «Decisiones abiertas» de `docs/PLAN.md` y avisa a Chris.
+Si los dos se contradicen, no elijas en silencio: anótalo en «Decisiones» de `docs/PLAN.md` y avisa a Chris.
 El código y los documentos de PliegoStack son procedencia: sirven para copiar valores exactos, no para decidir cómo debe verse la librería.
 
 ## Por dónde empezar
@@ -23,7 +23,7 @@ El código y los documentos de PliegoStack son procedencia: sirven para copiar v
 - `npm test` corre Vitest. `npm run typecheck` corre tsc.
 - `npm run build` hace tokens, typecheck y el build de librería en `dist/`.
 - `npm run build-storybook` compila Storybook; úsalo para verificar que las stories cargan.
-- `npm run test:a11y` corre axe sobre cada story del Storybook compilado. `npm run test:visual` compara una captura por story con su referencia (`e2e/visual.spec.ts-snapshots`, de macOS); `npm run test:visual:update` las regenera tras un cambio visual intencionado y hay que revisar el diff de las imágenes. Las dos necesitan `npx playwright install chromium` una vez.
+- `npm run test:a11y` corre axe sobre cada story del Storybook compilado. `npm run test:touch` mide en el navegador que todo control tenga 40 px de alto como mínimo, y 44 px con puntero grueso emulado. `npm run test:visual` compara una captura por story con su referencia (`e2e/visual.spec.ts-snapshots`, de macOS); `npm run test:visual:update` las regenera tras un cambio visual intencionado y hay que revisar el diff de las imágenes. Las dos necesitan `npx playwright install chromium` una vez.
 - `npm run ds:build` produce en `design-system/` (ignorada por git) el árbol del Design System de claude.ai a partir de la librería. `npm run ds:check` lo construye y abre cada tarjeta como la abre el artifact, sin errores y con axe. Publicar en el artifact es un paso aparte, con confirmación de Chris (ver L-13 en `docs/PLAN.md`).
 - Todos regeneran los tokens antes de correr (`pre*`).
 
@@ -59,4 +59,4 @@ El código y los documentos de PliegoStack son procedencia: sirven para copiar v
 - Si cambia algo publicable, añade un changeset (`npm run changeset`).
 - Confirma con la salida real de `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` antes de declararlo terminado.
 - Actualiza en `docs/PLAN.md` la tabla de estado (incremento, commit) y la sección «Estado actual».
-- Registra en «Decisiones abiertas» cualquier supuesto que haya que confirmar.
+- Registra en «Decisiones» de `docs/PLAN.md` cualquier supuesto que haya que confirmar.

@@ -22,6 +22,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 - L-1 cerrado (2026-10-13): con los dos permisos activados, el release abrió el PR de versión y, al mergearlo, publicó `@caravenas/pliego-ui@0.1.0` en GitHub Packages con `GITHUB_TOKEN` y creó el tag `v0.1.0`. Storybook se publica en https://caravenas.github.io/pliego-ui/.
 - L-10 cerrado (`e10826c`, 2026-10-13): `@caravenas/pliego-ui@0.1.0` se instala desde un proyecto vacío con `@caravenas:registry` en su `.npmrc`, trae `@radix-ui/react-dialog` y `react-toast` como dependencias, exporta los 18 componentes y `./styles.css` y `./tokens.json` resuelven.
 - L-13 cerrado (2026-10-16, `50d65e0`): `npm run ds:build` produce el árbol y `npm run ds:check` (33 pruebas) lo comprueba. Chris confirmó la publicación y se publicó en el artifact: 14 tarjetas vivas con `bundle.js` (`window.PliegoUI`), `bundle.css`, tokens de la librería (con `space-7`) y el README de marca al día; se sustituyeron `FormField`, `OptionGroup`, `CentralTabs` y `Notices`; `AppHeader`, `CatalogBoard`, `CatalogPanel`, `Panel` y la cubierta se conservaron. Las huellas de `bundle.js`, `bundle.css`, `tokens.json` y de un preview coinciden con lo generado, y las tarjetas se ven vivas en el artifact abierto. La copia de seguridad previa está en `design-system/backup-2026-10-15/` (local, ignorada por git).
+- Decisiones cerradas (2026-10-16): las 38 abiertas se resolvieron (ver «Decisiones»), con tres cambios de código: teclas arriba y abajo en `options`, `min-height: 40px` en `OptionCard` y una espera correcta en las pruebas de navegador, que además miden ahora las áreas de puntero en las 48 stories.
 - **Siguiente:** no queda ningún incremento abierto salvo `Tooltip`, que solo se hace si aparece un caso real. L-12 (migrar PliegoStack) se descartó: es trabajo de ese proyecto.
 
 | Id | Incremento | Estado | Commit |
@@ -136,7 +137,7 @@ Que quien construye una interfaz con pliego-ui tenga un selector segmentado que 
 - Los segmentos con `disabled` se saltan al navegar y no se pueden elegir.
 - Estilos en `SegmentedControl.css` solo con variables, clases `pui-` y BEM ligero, con el estilo de texto `central-tab` de los tokens (`pui-type-central-tab`).
 - Stories (tabs, options, con un segmento deshabilitado, con un segmento activo largo) y tests.
-- Export en `src/index.ts` con los tipos, un changeset, y actualizar en `docs/COMPONENTS.md` la línea de `options` y en «Decisiones abiertas» la decisión 1.
+- Export en `src/index.ts` con los tipos, un changeset, y actualizar en `docs/COMPONENTS.md` la línea de `options` y en «Decisiones» la decisión 1.
 
 **No objetivos.**
 - Paneles de pestañas (`tabpanel`) o cualquier contenido que cambie con la selección: lo aporta el consumidor.
@@ -202,7 +203,7 @@ Que quien construye un formulario con pliego-ui tenga opciones dibujadas a escal
 
 **Decisiones ya tomadas.**
 Mandan `docs/COMPONENTS.md` y el Design System de claude.ai (Chris, 2026-10-12).
-La siguiente la toma el agente al ejecutar el objetivo de completar el plan, y queda registrada en «Decisiones abiertas» para que Chris la confirme o la cambie:
+La siguiente la toma el agente al ejecutar el objetivo de completar el plan, y queda registrada en «Decisiones» para que Chris la confirme o la cambie:
 - `OptionCard` mantiene `aria-pressed` y no pasa a `radio`: la API es la de PliegoStack, no promete flechas, y cada opción se alcanza con Tab. Pasar a `radiogroup` es compatible hacia delante si se decide, porque el teclado ya existe en `SegmentedControl`.
 
 **Preguntas abiertas.**
@@ -244,7 +245,7 @@ Que quien construye un formulario con medidas (formato, lomo, sangrado) tenga un
 
 **Decisiones ya tomadas.**
 Mandan `docs/COMPONENTS.md` y el Design System de claude.ai (Chris, 2026-10-12).
-Las dos siguientes las toma el agente al ejecutar el objetivo de completar el plan, y quedan en «Decisiones abiertas» para que Chris las confirme:
+Las dos siguientes las toma el agente al ejecutar el objetivo de completar el plan, y quedan en «Decisiones» para que Chris las confirme:
 - El anillo de foco es de tinta con 3 px de separación, como pide `COMPONENTS.md`, aunque la regla general del sistema sea el anillo de `color-accent-ink`: la cifra es una cota y el acento no marca nada en ella.
 - El valor tiene 40 px de alto mínimo (44 con puntero grueso) y alinea sus elementos al centro, no por la línea base como el origen, para cumplir el área mínima de la regla del sistema.
 
@@ -285,7 +286,7 @@ Que quien construye una ficha técnica por pasos tenga un paso numerado que, cer
 
 **Decisiones ya tomadas.**
 Mandan `docs/COMPONENTS.md` y el Design System de claude.ai (Chris, 2026-10-12).
-La siguiente la toma el agente al ejecutar el objetivo de completar el plan, y queda en «Decisiones abiertas»:
+La siguiente la toma el agente al ejecutar el objetivo de completar el plan, y queda en «Decisiones»:
 - El componente lleva el estado de apertura y evita el cambio nativo del `<details>` (`preventDefault` en el `<summary>`), en vez de escuchar `toggle`: así `open` controla de verdad. El teclado y el estado expandido que anuncia el `<details>` se conservan.
 
 **Preguntas abiertas.**
@@ -325,7 +326,7 @@ Que quien muestra resultados calculados tenga una lista de cifras con su nombre 
 
 **Decisiones ya tomadas.**
 Mandan `docs/COMPONENTS.md` y el Design System de claude.ai (Chris, 2026-10-12).
-La siguiente la toma el agente al ejecutar el objetivo de completar el plan, y queda en «Decisiones abiertas»:
+La siguiente la toma el agente al ejecutar el objetivo de completar el plan, y queda en «Decisiones»:
 - `HowPanel` devuelve `null` también cuando solo tiene nota, como `HowItIsCalculated` cuando no hay nada que explicar: una nota sin nada que calificar no se pinta.
 
 **Preguntas abiertas.**
@@ -363,7 +364,7 @@ Que quien construye una interfaz tenga un aviso con cuatro tonos (nota, vista pr
 
 **Decisiones ya tomadas.**
 Mandan `docs/COMPONENTS.md` y el Design System de claude.ai (Chris, 2026-10-12).
-La siguiente la toma el agente al ejecutar el objetivo de completar el plan, y queda en «Decisiones abiertas»:
+La siguiente la toma el agente al ejecutar el objetivo de completar el plan, y queda en «Decisiones»:
 - El borde del error es `color-mix(in srgb, var(--color-danger-foreground) 30%, transparent)`: deriva del token, como pide `COMPONENTS.md`, y conserva el 30% de origen. Difiere del filete izquierdo que Chris aprobó para el error de `Field`: ahí es una línea bajo un control, aquí un aviso con caja.
 
 **Preguntas abiertas.**
@@ -403,7 +404,7 @@ Que una violación de accesibilidad o un cambio visual no intencionado en cualqu
 
 **Decisiones ya tomadas.**
 Chris autorizó las dependencias de L-9 (2026-10-13).
-Las siguientes las toma el agente al ejecutar el objetivo de completar el plan, y quedan en «Decisiones abiertas»: Playwright Test y `@axe-core/playwright` en lugar de `@storybook/test-runner`; las capturas solo en local; y mover el botón «···» de `SpecStep` fuera del `<summary>` para cumplir axe.
+Las siguientes las toma el agente al ejecutar el objetivo de completar el plan, y quedan en «Decisiones»: Playwright Test y `@axe-core/playwright` en lugar de `@storybook/test-runner`; las capturas solo en local; y mover el botón «···» de `SpecStep` fuera del `<summary>` para cumplir axe.
 
 **Preguntas abiertas.**
 Ninguna impide empezar.
@@ -450,7 +451,7 @@ Que quien construye una herramienta con una vista principal tenga un panel later
 
 **Decisiones ya tomadas.**
 Chris autorizó la instalación de `@radix-ui/react-dialog` (2026-10-13), y aprobó `@radix-ui/react-toast` el mismo día.
-Las siguientes las toma el agente al ejecutar el objetivo de completar el plan, y quedan en «Decisiones abiertas» para que Chris las confirme:
+Las siguientes las toma el agente al ejecutar el objetivo de completar el plan, y quedan en «Decisiones» para que Chris las confirme:
 - El `Drawer` es **no modal**, con la evidencia del origen: PliegoStack pasó su catálogo de diálogo modal a panel (R-24) al ver que la lámina de cristal tapaba la vista desde la que se pulsó «editar», y su `UX-REVIEW` no atrapa el foco en el interruptor de vistas.
 - Un `Toast` de error no se va solo, porque un mensaje que desaparece a los 5 s no lo lee quien tarda más; y el `Toast` no tiene API imperativa.
 
@@ -506,43 +507,47 @@ Ninguna impide empezar.
 
 ---
 
-## Decisiones abiertas
+## Decisiones
 
-1. **Radiogroup frente a `aria-pressed`.** Resuelta para `SegmentedControl` en L-3 (2026-10-12, Chris): `tablist` y `radiogroup` con tabindex móvil. En `OptionCard` (L-4) se mantuvo `aria-pressed`; ver la 14.
-2. **Colores de estado sin token.** `.catalog-persistence` pinta su punto con `#15803D` (guardado) y `#B45309` (solo sesión), literales. Propuesta: `color-success` y `color-warning` en `tokens.json`, con su contraste medido.
-3. **Botón en cápsula o con `radius-md`.** El rediseño dice que «todo control de entrada» va en cápsula, pero los botones del catálogo usan `radius-md`. La librería sigue el código (`radius-md`); confirmar que es intencional.
-4. **Tema oscuro.** No existe. El formato lo admite (`color.themes`); decidir si se quiere antes de 1.0.
-5. **Versiones.** Se fijaron las combinaciones probadas en PliegoStack (Vite 6, React 18 en desarrollo, TS 5.6, Storybook 8.6), más Vitest 3. Ya hay versiones mayores (Vite 8, Storybook 10, TS 7). Subir en un incremento propio, no mezclado.
-6. **React 19.** `peerDependencies` lo admite, pero los tests corren en 18. Añadir una matriz 18/19 en CI cuando haya consumidor en 19.
-7. **El `Drawer` modal o no** (ver L-11). Decidido por el agente: no modal (ver la 23); confirmar.
-8. **Tratamiento del error de `Field` (L-2).** El origen pintaba el error con un borde `rgba(244, 63, 94, 0.3)`, literal que el proyecto prohíbe. Chris aprobó (2026-10-12) texto y filete izquierdo de 2 px en `color-danger-foreground`, sin tokens nuevos. Falta contrastarlo con la nota de uso de ese token en el Design System.
-9. **Margen derecho de `Select` (L-2).** Los 36 px salen de `calc(var(--space-3) + var(--space-6))` y la posición del triángulo de `var(--space-3)`, para no dejar literales. Los pesos de 1 px (borde) y 2 px (anillo y filete) se aceptan como literales, igual que en `Input`. Si el sistema prefiere un token de «margen de control», se añade en un incremento propio.
-10. **`pointer: coarse` sin emulación (L-2).** La verificación manual midió 40 px de alto, 36 px de padding, foco de 2 px con 2 px de separación y la marginalia pegada a la derecha. Los 44 px con `pointer: coarse` solo están en el CSS: no se pudo emular en el navegador.
-11. **Estilo de texto de `options` (L-3).** `SegmentedControl` usa `central-tab` (mayúsculas, 0,16 em) también en `kind="options"`. Confirmar si formato y proporción deben llevar ese estilo o el de `form-input`.
-12. **Teclas verticales (L-3).** `options` responde a izquierda y derecha, Inicio y Fin, como pedía el brief; un `radiogroup` nativo también responde a arriba y abajo. Añadirlas si se quiere paridad con el nativo.
-13. **`pointer: coarse` sin emulación (L-3).** Igual que en L-2: los 44 px solo están en el CSS y no se midieron en el navegador.
-14. **`OptionCard` con `aria-pressed` (L-4).** Decidido por el agente al ejecutar el objetivo de completar el plan, sin confirmación de Chris: mantiene la API y la semántica de PliegoStack. Confirmar o pasar a `radio` con el teclado de `SegmentedControl`. Los 44 px con `pointer: coarse` solo están en el CSS (no se emuló).
-15. **Excepciones de tamaño de `OptionCard` (L-4).** La caja del dibujo (34px) y el paso fino del texto (2px) siguen literales y comentados, como en PliegoStack: la escala no tiene equivalente.
-16. **Foco de `MeasureField` (L-5).** Anillo de tinta de 2 px con 3 px de separación, según `COMPONENTS.md`, frente a la regla general del anillo de `color-accent-ink`. Confirmar que la cota es la excepción.
-17. **Alineación de `MeasureField` (L-5).** El valor se alinea al centro dentro de 40 px de alto mínimo, no por la línea base como en PliegoStack: puede moverse unos píxeles la cifra respecto al origen. Comparar con el original y ajustar si molesta.
-18. **Estado de `SpecStep` (L-6).** El componente lleva el estado y evita el cambio nativo del `<details>` para que `open` controle de verdad. Si se prefiere el comportamiento nativo con `onToggle`, el control deja de ser estricto. El resumen tiene el área de puntero de 40/44 px; los 44 px solo están en el CSS.
-19. **Alineación de `SpecStep` (L-6).** Con `space-7` (28 px) el valor y el cuerpo quedan a 1,6 px a la derecha del título medido en Storybook (el número de dos dígitos en mono de 12 px más el hueco de 12 px suman 26,4 px). Es el valor de PliegoStack; si se quiere alineación exacta, la sangría debería salir del ancho del número y no de un paso de la escala.
-20. **`HowPanel` sin nota por defecto (L-7).** La nota «valores preliminares · confirmar con la imprenta» de PliegoStack no viaja con el componente: se pasa por `note`. Y solo con nota el panel no se pinta.
-21. **Borde del error de `Notice` (L-8).** `color-mix` al 30% de `color-danger-foreground` (ver el brief). Si se prefiere el filete izquierdo de `Field`, hay que unificar los dos errores.
-22. **Workflows de L-1 (resuelta, 2026-10-13).** `ci.yml` pasa y `release.yml` abrió el PR de versión y publicó 0.1.0 con `GITHUB_TOKEN`. Hubo que activar «Allow GitHub Actions to create and approve pull requests» en el repositorio. Verificar al crear el remoto (L-0) con un PR de prueba, y revisar si el paquete, siendo privado y con `access: restricted`, necesita permisos de paquete adicionales.
-23. **`Drawer` no modal (L-11).** Decisión del agente, con la evidencia del origen (R-24 de PliegoStack pasó el catálogo de modal a panel). Con `modal={false}` Radix no atrapa el foco ni inerta la página; Escape, la entrada y el regreso del foco se implementan en el componente. Confirmar o pasar a modal.
-24. **Ancho del `Drawer` (L-11).** `min(100%, 30rem)` es un literal comentado: no hay equivalente en la escala. El panel es una capa fija en el borde derecho, no un bloque en el flujo como el `catalog-editor` de PliegoStack; ajustar si se quiere ese comportamiento.
-25. **Auditoría de dependencias (L-11).** Tras instalar Radix `npm` avisó de 28 vulnerabilidades en 528 paquetes (11 moderadas, 15 altas, 2 críticas). `npm audit --omit=dev` da 0: son de herramientas de desarrollo (Storybook, Vite, Vitest…), no de lo que se publica. Revisar con `npm audit` cuándo actualizar esas herramientas (decisión 5).
-26. **`Toast` sin API imperativa (L-11).** Se controla con `open`, como `Drawer`. Un `toast(...)` global con cola sería más cómodo para quien avisa desde cualquier sitio, pero añade estado global y una API que PliegoStack no usa. Confirmar o pedirlo.
-27. **Errores que no se van solos (L-11).** Un `Toast` de error usa `duration` infinita: se queda hasta descartarlo. Si apilar varios errores resulta molesto, habrá que limitar la cola. Los 44 px con `pointer: coarse` solo están en el CSS (no se emuló).
-28. **Captura de puntero en el setup de tests (L-11).** `src/test/setup.ts` define `hasPointerCapture`, `setPointerCapture` y `releasePointerCapture` como no-ops porque jsdom no las trae y Radix las usa; los tests de `MeasureField` las sustituyen con sus propios mocks.
-29. **Playwright Test en lugar de `@storybook/test-runner` (L-9).** El plan nombraba el `test-runner`, que es de Jest y necesita `jest-image-snapshot` para las capturas. Se usó `@playwright/test` con `@axe-core/playwright`: una herramienta, sin tercera dependencia. Si se prefiere el `test-runner` (o el addon de tests al subir de Storybook), es un cambio acotado a `e2e/`.
-30. **Capturas solo en local (L-9).** Las 48 referencias son de macOS (`*-darwin.png`) y las fuentes de Google se bloquean, así que se comparan con la pila de respaldo. `ci.yml` no las ejecuta: en Linux las referencias no existen y no serían comparables. Para activarlas hay que generar las de Linux (un workflow manual que suba el resultado, o Docker) y revisarlas una vez.
-31. **`SpecStep` y axe (L-9).** axe marcó `nested-interactive` (grave): el botón «···» estaba dentro del `<summary>`. Ahora el `<details>` va envuelto y el botón es hermano suyo, posado sobre el margen derecho del título. Cambia el marcado respecto a PliegoStack. Es una corrección de accesibilidad que PliegoStack arrastra.
-32. **Colisión con el addon `a11y` (L-9).** El addon corre axe dentro de la story y axe no admite dos ejecuciones a la vez; la prueba reintenta hasta 20 veces mientras el addon termina. Si Storybook cambia el addon, revisar `e2e/a11y.spec.ts`.
-33. **`pages.yml` (L-9, resuelta, 2026-10-13).** Pages estaba sin habilitar; con Source: GitHub Actions el despliegue pasa y está en https://caravenas.github.io/pliego-ui/. Escrito con `actions/configure-pages@v5`, `upload-pages-artifact@v3` y `deploy-pages@v4`. Un repositorio privado necesita un plan de GitHub que admita Pages; comprobar al crear el remoto.
-34. **READMEs del Design System (L-13).** El brief decía que saldrían de `docs/COMPONENTS.md`; salen en cambio de los READMEs que ya tenía el artifact, adaptados, porque ésos tienen la voz y las reglas de marca (`COMPONENTS.md` es una especificación para agentes, con rutas de procedencia). Quedan en `docs/design-system/` como fuente. Confirmar.
-35. **Hoja heredada en `bundle.css` (L-13).** `components/bundle.css` lleva la hoja de la librería y, detrás, la hoja de PliegoStack que traía el artifact (77 KB, sin tocar), solo para que `AppHeader`, `CatalogBoard`, `CatalogPanel`, `Panel` y la cubierta conserven su aspecto. La mayor parte de esas reglas ya no se usa. Cuando esas tarjetas salgan, se borra `scripts/design-system/legacy.css`.
-36. **Previews que no se van solos (L-13).** Los previews de `Toast` fijan `duration: Infinity` también en la nota, y `Drawer` sale abierto, para que la tarjeta no quede vacía.
-37. **Publicación del Design System (L-13).** El artifact quedó en la versión 14 (`1792117379-48fa`). Cambios visibles al publicar: `tokens.json` ya no trae `glass-bg` ni `glass-border` (la librería los eliminó por sin uso) y su `meta.source` pasa de `github` a `library`; el índice pasa a `namespace` `PliegoUI` y a cargar React 18; el `title` sigue siendo «PliegoStack». `components/index.d.ts` se subió como `text/plain` (el servicio no sirve `.ts`). El `lastChange` dice `via` «GitHub · caravenas/pliego-ui@50d65e0».
-38. **Mantener el artifact al día (L-13).** Republicar es manual: `npm run ds:build` y publicar `design-system/project/` con confirmación. Si se quiere automatizar, el tipo ofrece un productor que un CI republica (`via` «CI …»), con el riesgo de pisar ediciones hechas desde la página.
+Las tomó el agente el 2026-10-16, por encargo de Chris («toma tú las decisiones de las preguntas abiertas»). Están **cerradas** salvo las marcadas como **aplazadas**, que dicen qué las reabriría. Chris puede cambiar cualquiera.
+
+1. **Radiogroup frente a `aria-pressed`.** Cerrada: `SegmentedControl` es `tablist` y `radiogroup` con tabindex móvil (Chris, 2026-10-12); `OptionCard` mantiene `aria-pressed` (14).
+2. **Colores de estado sin token.** Aplazada: no se añaden `color-success` ni `color-warning`. El punto de `.catalog-persistence` es de la app, no de la librería. Se reabre si un componente de la librería los necesita.
+3. **Botón en cápsula o con `radius-md`.** Cerrada: `radius-md`, como en el código. Un botón no es un control de entrada, que es lo que el sistema dice que va en cápsula.
+4. **Tema oscuro.** Cerrada: no hay. No está en el plan ni lo pide ningún consumidor. Se reabre si lo pide uno.
+5. **Versiones.** Aplazada: no se suben las versiones mayores (Vite, Storybook, TS) sin un motivo. Los 28 avisos de `npm audit` son de herramientas de desarrollo. Se hace en un incremento propio cuando una dependencia lo exija.
+6. **React 19.** Aplazada, con un riesgo que hay que decir: `peerDependencies` admite React 19 y los tests corren solo en 18, así que esa compatibilidad **no está comprobada**. Se añade una matriz 18/19 en CI cuando haya un consumidor en 19 o antes de una versión 1.0.
+7. **`Drawer` modal o no.** Cerrada: no modal (ver 23).
+8. **Error de `Field`.** Cerrada: texto y filete de 2 px en `color-danger-foreground`. Contrastado con el Design System: su nota de uso de ese token («texto y borde de un error que bloquea un cálculo, siempre con palabras», 5,96:1) lo respalda.
+9. **Margen derecho de `Select`.** Cerrada: `calc(var(--space-3) + var(--space-6))` (36 px) y los pesos de 1 px y 2 px como literales, igual que `Input`. No se crea un token de «margen de control».
+10. **`pointer: coarse` en L-2.** Cerrada: medido. `e2e/touch-targets.spec.ts` mide, en las 48 stories y con un móvil emulado, que todo control tiene 44 px de alto (40 px con puntero fino).
+11. **Estilo de texto de `options`.** Cerrada: `central-tab` en `tabs` y en `options`, un solo lenguaje visual para el selector segmentado.
+12. **Teclas verticales.** Cerrada y hecha: `options` responde también a arriba y abajo, como un `radiogroup` nativo. `tabs` sigue con izquierda y derecha. Con tests y un changeset `patch`.
+13. **`pointer: coarse` en L-3.** Cerrada: medido (ver 10).
+14. **`OptionCard` con `aria-pressed`.** Cerrada: se mantiene la semántica y la API de PliegoStack, y no promete flechas. Pasar a `radio` sería un cambio de API que hoy nadie pide.
+15. **Excepciones de tamaño de `OptionCard`.** Cerrada: la caja del dibujo (34 px) y el paso fino del texto (2 px) siguen literales y comentados.
+16. **Foco de `MeasureField`.** Cerrada: anillo de tinta de 2 px con 3 px de separación. El propio Design System documenta esa excepción en su README de `MeasureField`.
+17. **Alineación de `MeasureField`.** Cerrada: la cifra y la unidad se alinean al centro dentro de 40 px de alto, para cumplir el área mínima del sistema.
+18. **Estado de `SpecStep`.** Cerrada: el componente lleva el estado y `open` controla de verdad.
+19. **Alineación de `SpecStep`.** Cerrada: se acepta la diferencia de 1,6 px con `space-7`, que es el valor de PliegoStack. Una alineación exacta exigiría derivar la sangría del ancho del número.
+20. **`HowPanel` sin nota por defecto.** Cerrada: la nota viaja por `note`, y solo con nota el panel no se pinta.
+21. **Errores de `Field` y de `Notice`.** Cerrada: son dos tratamientos a propósito, del mismo token. En `Field`, un filete bajo un control; en `Notice`, una caja (borde al 30% de `color-danger-foreground`).
+22. **Workflows de L-1.** Cerrada (2026-10-13): CI y release verificados; hubo que activar «Allow GitHub Actions to create and approve pull requests».
+23. **`Drawer` no modal.** Cerrada, con la evidencia del origen: PliegoStack pasó el catálogo de modal a panel (R-24).
+24. **Ancho y posición del `Drawer`.** Cerrada: capa fija en el borde derecho, de ancho `min(100%, 30rem)`, literal comentado.
+25. **Auditoría de dependencias.** Cerrada: `npm audit --omit=dev` da 0 vulnerabilidades en lo que se publica.
+26. **`Toast` sin API imperativa.** Cerrada: se controla con `open`. Un `toast(...)` global añade estado global que ningún consumidor pide.
+27. **Errores de `Toast` persistentes.** Cerrada: no se van solos. Si apilar varios molesta, se limitará la cola.
+28. **Captura de puntero en los tests.** Cerrada: `src/test/setup.ts` define sus métodos como no-ops, porque jsdom no los trae.
+29. **Playwright Test en lugar de `@storybook/test-runner`.** Cerrada: una herramienta, y sin `jest-image-snapshot`.
+30. **Capturas solo en local.** Cerrada: las 48 referencias son de macOS y no se ejecutan en CI. Para activarlas habría que generar las de Linux y revisarlas una vez.
+31. **`SpecStep` y axe.** Cerrada: el botón «···» sale del `<summary>`, y PliegoStack, al consumir la librería, adopta ese marcado.
+32. **Colisión con el addon `a11y`.** Cerrada: la prueba reintenta mientras el addon termina.
+33. **`pages.yml`.** Cerrada (2026-10-13): Pages desplegando en https://caravenas.github.io/pliego-ui/.
+34. **READMEs del Design System.** Cerrada: parten de los que ya tenía el artifact, adaptados, y viven en `docs/design-system/`.
+35. **Hoja heredada en `bundle.css`.** Cerrada: se conserva para `AppHeader`, `CatalogBoard`, `CatalogPanel`, `Panel` y la cubierta; se borra `scripts/design-system/legacy.css` cuando esas tarjetas salgan.
+36. **Previews que no se van solos.** Cerrada: los de `Toast` fijan `duration: Infinity` y el de `Drawer` sale abierto.
+37. **Publicación del Design System.** Cerrada: versión 14 del artifact (2026-10-16). `tokens.json` ya no trae `glass-bg` ni `glass-border`, y su `meta.source` pasa a `library`.
+38. **Mantener el artifact al día.** Cerrada: republicar es manual, con confirmación de Chris. Un CI que lo republique podría pisar ediciones hechas desde la página.
+39. **Las pruebas de navegador esperaban poco (2026-10-16).** Cerrada: `sb-show-main` se pone antes de que React monte la story, así que `a11y`, `visual` y `touch` podían medir una página vacía y pasar sin comprobar nada. `openStory` espera ahora a que haya algo que medir; con eso, a11y pasa 48 de 48 y las áreas, 96 de 96, en tres ejecuciones.
+40. **Marcas de escala de `OptionCard` bajo 40 px (2026-10-16).** Cerrada: la prueba de áreas encontró que `variant="notch"` medía 27–39 px con puntero fino; ahora `OptionCard` fija `min-height: 40px`, y la marca conserva su número pegado, sin crecer el texto. Cambia la captura de `OptionField · Scale`. **El artifact de claude.ai sigue con el CSS anterior**: hay que republicarlo (con confirmación de Chris, ver 38) para que lo recoja.

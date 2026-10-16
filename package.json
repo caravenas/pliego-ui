@@ -45,6 +45,8 @@
     "pretest:visual": "npm run build-storybook",
     "test:visual": "playwright test e2e/visual.spec.ts",
     "test:visual:update": "playwright test e2e/visual.spec.ts --update-snapshots",
+    "ds:build": "npm run build && tsx scripts/build-design-system.ts",
+    "ds:check": "npm run ds:build && playwright test e2e/design-system.spec.ts",
     "pretypecheck": "npm run tokens",
     "typecheck": "tsc --noEmit",
     "pretest": "npm run tokens",

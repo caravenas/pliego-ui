@@ -134,7 +134,20 @@ interface SpecStepProps {
 - El borde del error es hoy `rgba(244, 63, 94, 0.3)`, un literal que no sale de ningún token. Proponer un token o derivarlo de `color-danger-foreground`.
 - Un error dice qué regla falla, nunca un mensaje genérico.
 
-## Drawer / Toast / Tooltip (L-11)
+## ✅ Drawer (L-11)
 
-- **Origen**: `CatalogPanel.tsx`, `.catalog-editor*` y `.catalog-*`, y los avisos descartables de persistencia y de huérfanos.
-- Con Radix. Ver la decisión de modalidad en el plan.
+- **Origen**: `CatalogPanel.tsx`, `.catalog-editor*` y `.catalog-*`.
+- **API**: `{ open?, defaultOpen?, onOpenChange?, title, closeLabel = 'Cerrar', children }`.
+- Sobre `@radix-ui/react-dialog` con `modal={false}`: **no es modal**. No atrapa el foco, no inerta la página y un clic fuera no lo cierra. Escape lo cierra, el foco entra en el panel (no en el botón de cerrar) al abrir y vuelve a donde estaba al cerrar.
+- Entra y sale por el borde derecho con `transition-drawer-in` y `transition-drawer-out` (fundido al entrar, opaco al salir) y sin movimiento con `prefers-reduced-motion`.
+
+## ✅ Toast (L-11)
+
+- **Origen**: ninguno; PliegoStack no tiene avisos descartables.
+- **API**: `ToastProvider { label = 'Avisos ({hotkey})', children }` va una vez; `Toast { open?, defaultOpen?, onOpenChange?, variant: 'note' | 'error', title?, duration?, closeLabel, action?: { label, onAction }, children }`.
+- Sobre `@radix-ui/react-toast`. Una `note` se va sola a los 5 s y se anuncia con calma; un `error` no se va solo (`duration` infinita) y se anuncia al momento.
+- Mismo tratamiento visual que `Notice`, sin sombra (el sistema las desactiva). No hay API imperativa.
+
+## Tooltip (pendiente)
+
+- Solo si aparece un caso real. Con `@radix-ui/react-tooltip`.

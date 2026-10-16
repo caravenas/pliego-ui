@@ -13,3 +13,6 @@ src/tokens.ts
 # Pruebas de navegador (Playwright)
 test-results
 playwright-report
+
+# Salida del productor del Design System (npm run ds:build) y su copia de seguridad
+/design-system/

@@ -21,6 +21,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 - L-9 cerrado en local: axe sobre las 48 stories (`npm run test:a11y`) y capturas comparadas (`npm run test:visual`). En CI solo corre axe; `pages.yml` está escrito y sin ejecutar.
 - L-1 cerrado (2026-10-13): con los dos permisos activados, el release abrió el PR de versión y, al mergearlo, publicó `@caravenas/pliego-ui@0.1.0` en GitHub Packages con `GITHUB_TOKEN` y creó el tag `v0.1.0`. Storybook se publica en https://caravenas.github.io/pliego-ui/.
 - L-10 cerrado (`e10826c`, 2026-10-13): `@caravenas/pliego-ui@0.1.0` se instala desde un proyecto vacío con `@caravenas:registry` en su `.npmrc`, trae `@radix-ui/react-dialog` y `react-toast` como dependencias, exporta los 18 componentes y `./styles.css` y `./tokens.json` resuelven.
+- L-13, productor hecho (2026-10-15): `npm run ds:build` genera las 14 tarjetas vivas con `bundle.js` y `npm run ds:check` (33 pruebas) las abre como lo hace el artifact. **Falta publicarlo en el artifact de claude.ai**, que Chris debe confirmar; hay una copia de seguridad de lo que tiene hoy en `design-system/backup-2026-10-15/`.
 - **Siguiente:** quedan `Tooltip` (solo con un caso real) y L-13 (Design System), que se hace fuera de este repositorio. L-12 (migrar PliegoStack) se descartó: es trabajo de ese proyecto.
 
 | Id | Incremento | Estado | Commit |
@@ -38,7 +39,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-10 | Primera publicación, 0.1.0 | hecho (publicado e instalado desde un proyecto vacío, 2026-10-13) | `e10826c`, tag `v0.1.0` |
 | L-11 | Radix: `Drawer` (catálogo), `Tooltip`, `Toast` | parcial: `Drawer` y `Toast` hechos; `Tooltip` pendiente (solo con un caso real) | ver `git log` (`feat: add Drawer`, `feat: add Toast`) |
 | L-12 | Migrar PliegoStack a la librería | descartado (Chris, 2026-10-13): es trabajo del proyecto PliegoStack | |
-| L-13 | Re-sincronizar el Design System desde la librería | en curso (brief aprobado en parte el 2026-10-15; publicar necesita confirmación) | |
+| L-13 | Re-sincronizar el Design System desde la librería | productor hecho y comprobado en local; falta publicar en el artifact (necesita confirmación de Chris) | ver `git log` (`feat: add the Design System producer`) |
 
 Orden razonado: primero la red de seguridad (CI), luego los primitivos de formulario que todo lo demás usa (`Field`), luego los patrones propios en el orden en que aparecen en la ficha técnica, y solo entonces publicar y migrar. Radix entra cuando haga falta, no antes.
 
@@ -464,10 +465,10 @@ Se publica **en el artifact de claude.ai** (https://claude.ai/artifact/81WGnnxqt
 Que el Design System de claude.ai describa y muestre la librería que existe, con previews vivos de sus componentes reales, para que lo que Chris ve en el artifact y lo que instala el paquete `0.1.0` sean lo mismo.
 
 **Alcance.**
-- Un productor reproducible dentro de la librería: `scripts/build-design-system.ts` y `npm run ds:build`, que escriben la carpeta `design-system/` (ignorada por git) con el árbol `project/` que pide el tipo.
+- Un productor reproducible dentro de la librería: `scripts/build-design-system.ts` y `npm run ds:build`, que escriben la carpeta `design-system/` (ignorada por git) con el árbol `project/` que pide el tipo. Las fuentes de las tarjetas viven en el repositorio: `docs/design-system/` (el README de marca y un README por componente) y `scripts/design-system/` (los previews y la hoja heredada).
 - `components/bundle.js`: un IIFE clásico que lee `window.React` y `window.ReactDOM` y asigna `window.PliegoUI`, con el jsx runtime sustituido por una capa sobre `createElement`, con su cabecera `@ds-bundle` y dentro del tope de 6 MB. Se construye con el `vite build` de la librería, sin dependencias nuevas.
 - `components/bundle.css`: la hoja de estilos de la librería (`dist/styles.css`, con los tokens) seguida de la hoja actual del artifact sin tocar, para que las tarjetas que se conservan mantengan su aspecto.
-- Una tarjeta nueva por componente de la librería, con `README.md` y `preview.html` vivo: `Button`, `Badge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `MeasureField`, `SpecStep`, `ResultList`, `HowPanel`, `Notice`, `Drawer` y `Toast`. Los READMEs salen de `docs/COMPONENTS.md` con su frase de resumen. `ResultList` pasa a `<dl>`.
+- Una tarjeta nueva por componente de la librería, con `README.md` y `preview.html` vivo: `Button`, `Badge`, `Input`, `Select`, `Field`, `SegmentedControl`, `OptionField`, `MeasureField`, `SpecStep`, `ResultList`, `HowPanel`, `Notice`, `Drawer` y `Toast`. Los READMEs parten de los que ya tenía el artifact, con su voz, puestos al día con la API de la librería (los de `Button`, `Badge`, `Input`, `Select`, `Drawer` y `Toast` son nuevos). `ResultList` pasa a `<dl>`.
 - `tokens.json` de la librería, tal cual, y `components/index.d.ts` con los tipos.
 - Actualizar `project/README.md` donde ya es falso (el escalón `space-7` ya existe, hay `bundle.js`, el movimiento ya se usa en `Drawer` y `Toast`) y su sección «No sincronizado»; conservar el resto de la prosa. Índice con `namespace` `PliegoUI`, `libraries` de React 18 y `lastChange` con `via` «GitHub · caravenas/pliego-ui@<sha>».
 - Una copia de seguridad local de los 42 archivos actuales antes de publicar.
@@ -484,7 +485,7 @@ Que el Design System de claude.ai describa y muestre la librería que existe, co
 **Aceptación.**
 1. `npm run ds:build` termina en 0 y la salida cumple el formato del tipo: `components/bundle.js` empieza por su cabecera `@ds-bundle`, es un script clásico sin `</script` ni `<!--` y pesa menos de 6 MB, y cada tarjeta tiene su `README.md` y su `preview.html` con la línea `@dsCard`.
 2. `npm run ds:check` termina en 0: cada preview se pinta con `window.PliegoUI` y React 18 sin errores de consola, y pasa axe sin violaciones.
-3. Un test de Vitest comprueba que `window.PliegoUI` exporta los 18 componentes de `src/index.ts` y que `tokens.json` de la salida es idéntico al de `tokens/tokens.json`.
+3. `npm run ds:check` comprueba que `window.PliegoUI` exporta todo lo que exporta `src/index.ts`, que `tokens.json` de la salida es idéntico al de `tokens/tokens.json` y que `bundle.js` cumple el formato (cabecera `@ds-bundle` en la línea 1, sin `import` ni `</script`, menos de 6 MB).
 4. Tras publicar, una lectura de vuelta del artifact muestra los archivos cambiados con el contenido de `design-system/` y la versión anterior intacta en la copia de seguridad.
 5. Se revisa a mano en el artifact abierto en el navegador: las tarjetas muestran los componentes vivos, `ResultList` es una `<dl>` y la cubierta se mantiene.
 6. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, y no hay dependencias nuevas.
@@ -540,3 +541,6 @@ Ninguna impide empezar.
 31. **`SpecStep` y axe (L-9).** axe marcó `nested-interactive` (grave): el botón «···» estaba dentro del `<summary>`. Ahora el `<details>` va envuelto y el botón es hermano suyo, posado sobre el margen derecho del título. Cambia el marcado respecto a PliegoStack. Es una corrección de accesibilidad que PliegoStack arrastra.
 32. **Colisión con el addon `a11y` (L-9).** El addon corre axe dentro de la story y axe no admite dos ejecuciones a la vez; la prueba reintenta hasta 20 veces mientras el addon termina. Si Storybook cambia el addon, revisar `e2e/a11y.spec.ts`.
 33. **`pages.yml` (L-9, resuelta, 2026-10-13).** Pages estaba sin habilitar; con Source: GitHub Actions el despliegue pasa y está en https://caravenas.github.io/pliego-ui/. Escrito con `actions/configure-pages@v5`, `upload-pages-artifact@v3` y `deploy-pages@v4`. Un repositorio privado necesita un plan de GitHub que admita Pages; comprobar al crear el remoto.
+34. **READMEs del Design System (L-13).** El brief decía que saldrían de `docs/COMPONENTS.md`; salen en cambio de los READMEs que ya tenía el artifact, adaptados, porque ésos tienen la voz y las reglas de marca (`COMPONENTS.md` es una especificación para agentes, con rutas de procedencia). Quedan en `docs/design-system/` como fuente. Confirmar.
+35. **Hoja heredada en `bundle.css` (L-13).** `components/bundle.css` lleva la hoja de la librería y, detrás, la hoja de PliegoStack que traía el artifact (77 KB, sin tocar), solo para que `AppHeader`, `CatalogBoard`, `CatalogPanel`, `Panel` y la cubierta conserven su aspecto. La mayor parte de esas reglas ya no se usa. Cuando esas tarjetas salgan, se borra `scripts/design-system/legacy.css`.
+36. **Previews que no se van solos (L-13).** Los previews de `Toast` fijan `duration: Infinity` también en la nota, y `Drawer` sale abierto, para que la tarjeta no quede vacía.

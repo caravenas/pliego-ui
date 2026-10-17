@@ -1,5 +1,12 @@
 # @caravenas/pliego-ui
 
+## 0.1.1
+
+### Patch Changes
+
+- f8832d5: `OptionCard` now measures at least 40px tall with a fine pointer, scale notches included. Before, only the coarse-pointer rule (44px) held it.
+- 873d704: `SegmentedControl` with `kind="options"` now also answers to the up and down arrow keys, like a native radio group. `kind="tabs"` keeps left and right only.
+
 ## 0.1.0
 
 ### Minor Changes

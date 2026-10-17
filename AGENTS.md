@@ -23,7 +23,7 @@ El código y los documentos de PliegoStack son procedencia: sirven para copiar v
 - `npm test` corre Vitest. `npm run typecheck` corre tsc.
 - `npm run build` hace tokens, typecheck y el build de librería en `dist/`.
 - `npm run build-storybook` compila Storybook; úsalo para verificar que las stories cargan.
-- `npm run test:a11y` corre axe sobre cada story del Storybook compilado. `npm run test:touch` mide en el navegador que todo control tenga 40 px de alto como mínimo, y 44 px con puntero grueso emulado. `npm run test:visual` compara una captura por story con su referencia (`e2e/visual.spec.ts-snapshots`, de macOS); `npm run test:visual:update` las regenera tras un cambio visual intencionado y hay que revisar el diff de las imágenes. Las dos necesitan `npx playwright install chromium` una vez.
+- `npm run test:a11y` corre axe sobre cada story del Storybook compilado. `npm run test:touch` mide en el navegador que todo control tenga 40 px de alto como mínimo, y 44 px con puntero grueso emulado. `npm run test:visual` compara una captura por story con su referencia (`e2e/visual.spec.ts-snapshots`, de macOS); `npm run test:visual:update` las regenera tras un cambio visual intencionado y hay que revisar el diff de las imágenes. Estas pruebas de navegador necesitan `npx playwright install chromium` una vez.
 - `npm run ds:build` produce en `design-system/` (ignorada por git) el árbol del Design System de claude.ai a partir de la librería. `npm run ds:check` lo construye y abre cada tarjeta como la abre el artifact, sin errores y con axe. Publicar en el artifact es un paso aparte, con confirmación de Chris (ver L-13 en `docs/PLAN.md`).
 - Todos regeneran los tokens antes de correr (`pre*`).
 

@@ -4,7 +4,24 @@ import { listStories, openStory } from './stories';
 // La regla del sistema: ningún control mide menos de 40 px de alto, y con
 // `pointer: coarse` menos de 44 px. Se mide en el navegador, para cada story,
 // con el puntero fino (por defecto) y con uno grueso (un móvil emulado).
-const CONTROLS = 'button, a[href], select, input:not([type="hidden"]), summary, [role="tab"], [role="radio"]';
+// Los controles que la librería pinta hoy, más los nativos y los roles
+// interactivos que una story futura podría traer, para que no pasen sin medir.
+const CONTROLS = [
+  'button',
+  'a[href]',
+  'select',
+  'textarea',
+  'input:not([type="hidden"])',
+  'summary',
+  '[contenteditable]:not([contenteditable="false"])',
+  '[role="button"]',
+  '[role="tab"]',
+  '[role="radio"]',
+  '[role="checkbox"]',
+  '[role="switch"]',
+  '[role="menuitem"]',
+  '[role="option"]',
+].join(', ');
 
 /**
  * Lo que mide un control: el control mismo, salvo la cifra de `MeasureField`,

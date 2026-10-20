@@ -51,6 +51,10 @@ El código y los documentos de PliegoStack son procedencia: sirven para copiar v
 - Un incremento nuevo parte de un brief en `docs/PLAN.md`: Objetivo, Alcance, No objetivos, Aceptación numerada y Rollback. El formato está en `~/.agents/docs/formato-de-brief.md`.
 - Compruébalo con `node ~/.agents/workflows/scripts/task-brief.mjs check docs/PLAN.md --heading "L-2"`. Cada criterio de Aceptación dice cómo se comprueba: un comando, un test, una prueba o una revisión manual.
 - Lo propone el agente y lo aprueba Chris antes de construir. Nadie construye desde un brief sin aprobar.
+- Cuando Chris aprueba el brief, y **antes de escribir código**, crea el checkpoint del incremento. Es el estado de la tarea, vive fuera del repositorio y lo crea este comando, no se crea solo: `checkpoint new --repo ~/Projects/pliego-ui --brief docs/PLAN.md --heading "<id>" --playbook feature-development --mode lean "<id>: <título>"`. Imprime la ruta; guárdala.
+- Sin checkpoint, la línea `checkpoint check --current --strict` del contrato de verificación pasa sin comprobar nada. Crearlo no es opcional.
+- Cada criterio de Aceptación que cumplas, márcalo con su evidencia: `checkpoint mark <ruta> <n> "<comando y resultado>"`. No edites el archivo a mano. Si el contrato dice que el checkpoint está atrasado, márcalo; no lo evites.
+- Al terminar, `checkpoint close <ruta>`. Un criterio que no puedas verificar tú (por ejemplo una revisión manual de Chris) se queda sin marcar y lo dices; no lo marques por pasar el contrato.
 - El contrato de verificación (`.verify.conf`) y su política (`.agents/policy.json`) los edita solo Chris.
 
 ## Al cerrar un incremento
@@ -60,3 +64,4 @@ El código y los documentos de PliegoStack son procedencia: sirven para copiar v
 - Confirma con la salida real de `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` antes de declararlo terminado.
 - Actualiza en `docs/PLAN.md` la tabla de estado (incremento, commit) y la sección «Estado actual».
 - Registra en «Decisiones» de `docs/PLAN.md` cualquier supuesto que haya que confirmar.
+- Deja marcado el checkpoint del incremento y ciérralo (`checkpoint close`), o di qué criterios quedaron sin verificar y por qué.

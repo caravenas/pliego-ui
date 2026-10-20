@@ -1,6 +1,6 @@
 {
   "name": "@caravenas/pliego-ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Librería de componentes de PliegoStack: tokens, primitivos y patrones de ingeniería editorial.",
   "type": "module",
   "license": "UNLICENSED",

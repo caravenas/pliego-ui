@@ -99,4 +99,20 @@ describe('contraste de los colores de estado', () => {
     expect(ratio(colors[name], colors['color-bg-secondary'])).toBeGreaterThanOrEqual(4.5);
     expect(ratio(colors[name], colors['color-bg-primary'])).toBeGreaterThanOrEqual(4.5);
   });
+
+  const hue = (hex: string) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    const max = Math.max(r, g, b);
+    const delta = max - Math.min(r, g, b);
+    if (delta === 0) return 0;
+    const h = max === r ? ((g - b) / delta) % 6 : max === g ? (b - r) / delta + 2 : (r - g) / delta + 4;
+    return (h * 60 + 360) % 360;
+  };
+
+  it('un abono es azul y no se confunde con el cian del foco y los enlaces', () => {
+    const credit = hue(colors['color-success-foreground']);
+    expect(credit).toBeGreaterThanOrEqual(200);
+    expect(credit).toBeLessThanOrEqual(250);
+    expect(Math.abs(credit - hue(colors['color-accent-ink']))).toBeGreaterThanOrEqual(15);
+  });
 });

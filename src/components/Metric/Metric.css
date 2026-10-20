@@ -1,0 +1,32 @@
+/* Sin caja: en este sistema una superficie se distingue por su filete, no por un fondo. */
+.pui-metric {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.pui-metric__label {
+  margin: 0;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+
+.pui-metric__value {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-primary);
+}
+
+/*
+ * Amount trae el estilo de una cifra de lista; aquí hereda el de la cifra clave.
+ * Propiedad por propiedad y no con `font: inherit`, que reiniciaría tabular-nums.
+ */
+.pui-metric__value .pui-amount {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+.pui-metric__change {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-secondary);
+}

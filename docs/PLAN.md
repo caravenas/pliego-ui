@@ -24,6 +24,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 - L-13 cerrado (2026-10-16, `50d65e0`): `npm run ds:build` produce el árbol y `npm run ds:check` (33 pruebas) lo comprueba. Chris confirmó la publicación y se publicó en el artifact: 14 tarjetas vivas con `bundle.js` (`window.PliegoUI`), `bundle.css`, tokens de la librería (con `space-7`) y el README de marca al día; se sustituyeron `FormField`, `OptionGroup`, `CentralTabs` y `Notices`; `AppHeader`, `CatalogBoard`, `CatalogPanel`, `Panel` y la cubierta se conservaron. Las huellas de `bundle.js`, `bundle.css`, `tokens.json` y de un preview coinciden con lo generado, y las tarjetas se ven vivas en el artifact abierto. La copia de seguridad previa está en `design-system/backup-2026-10-15/` (local, ignorada por git).
 - Decisiones cerradas (2026-10-16): las 38 abiertas se resolvieron (ver «Decisiones»), con tres cambios de código: teclas arriba y abajo en `options`, `min-height: 40px` en `OptionCard` y una espera correcta en las pruebas de navegador, que además miden ahora las áreas de puntero en las 48 stories.
 - L-14 cerrado (2026-10-19): `Amount`, `MovementsTable` y `TrendChart` (SVG propio) con el token `color-success-foreground`; 163 tests, 61 stories sin violaciones de axe, áreas de puntero medidas y 61 capturas. Quedan pendientes los incrementos siguientes del dashboard (ver «Pendiente» de L-14) y republicar el Design System, que no incluye aún las tarjetas ni el token nuevos.
+- L-15 cerrado (2026-10-20): `Metric` (cifra clave con variación escrita), `DataPanel` (carga, error y datos anteriores, con anuncios y foco) y el selector de periodo como `SegmentedControl` endurecido; el abono pasa a azul y hay un estilo de texto `metric-value`. 218 tests, 77 stories sin violaciones de axe, áreas de puntero medidas y 77 capturas. Queda pendiente la revisión manual de Chris y republicar el Design System, que no incluye L-14 ni L-15.
 - **Siguiente:** no queda ningún incremento abierto salvo `Tooltip`, que solo se hace si aparece un caso real. L-12 (migrar PliegoStack) se descartó: es trabajo de ese proyecto.
 
 | Id | Incremento | Estado | Commit |
@@ -42,6 +43,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-11 | Radix: `Drawer` (catálogo), `Tooltip`, `Toast` | parcial: `Drawer` y `Toast` hechos; `Tooltip` pendiente (solo con un caso real) | ver `git log` (`feat: add Drawer`, `feat: add Toast`) |
 | L-12 | Migrar PliegoStack a la librería | descartado (Chris, 2026-10-13): es trabajo del proyecto PliegoStack | |
 | L-14 | `Amount`, `MovementsTable` y `TrendChart` | hecho, con la revisión manual de Chris pendiente | ver `git log` (`feat: add Amount, MovementsTable and TrendChart`) |
+| L-15 | `Metric`, `DataPanel` y el selector de periodo | hecho, con la revisión manual de Chris pendiente | ver `git log` (`feat: add Metric and DataPanel`) |
 | L-13 | Re-sincronizar el Design System desde la librería | hecho (publicado en el artifact el 2026-10-16, versión 14) | `50d65e0` |
 
 Orden razonado: primero la red de seguridad (CI), luego los primitivos de formulario que todo lo demás usa (`Field`), luego los patrones propios en el orden en que aparecen en la ficha técnica, y solo entonces publicar y migrar. Radix entra cuando haga falta, no antes.
@@ -561,6 +563,107 @@ Propuestas del agente que quedan confirmadas al aprobar el brief:
 **Preguntas abiertas.**
 Ninguna impide empezar.
 
+## L-15 — Estados del dashboard: `Metric`, `DataPanel` y el selector de periodo
+
+Segundo incremento del dashboard de finanzas, acotado a tres piezas del «Pendiente» de L-14: la cifra clave con su variación, el estado de carga y de error de un panel, y el selector de periodo.
+Sin origen en PliegoStack, y el Design System de claude.ai no cubre cifras clave, variaciones ni estados de carga: lo que falta va en «Preguntas abiertas» con una propuesta.
+Valen las decisiones de L-14 y la 41 de «Decisiones».
+
+**Objetivo.**
+Que quien construye un dashboard de finanzas pueda mostrar una cifra clave con cuánto cambió, elegir el periodo que se mira y decir en palabras si un panel está cargando, falló o muestra datos anteriores, de modo que nadie, con o sin lector de pantalla, tome una cifra vieja por vigente ni pierda el foco cuando el panel cambia.
+
+**Alcance.**
+- `Metric`: una cifra clave (saldo, gasto del mes) con su rótulo y, si se le da el valor anterior, su variación escrita.
+  API propuesta: `label` (en minúsculas), `value`, `previous?`, `currency`, `locale?`, `comparison?` (el texto del periodo de comparación, «frente a septiembre») y `labels?` (`up` «sube», `down` «baja», `flat` «sin cambio», `noPrevious` «sin dato anterior», `noPercent` «sin porcentaje: el valor anterior es 0», `lessThan` «menos de»).
+  La cifra va con `Amount` neutro; la diferencia, con `formatAmount`.
+- `formatChange` en `src/utils/formatChange.ts`, interna y con sus tests, junto a `formatAmount`: de un valor y un anterior da la dirección (`up`, `down`, `flat`), la diferencia escrita y el porcentaje escrito o su ausencia.
+  Reglas:
+  - La dirección sale de la diferencia ya redondeada a los decimales de la moneda, como el signo de `Amount`: `0.1 + 0.2 - 0.3` es «sin cambio».
+  - El porcentaje es la diferencia sobre el valor absoluto del anterior, con un decimal y sin signo propio, porque la palabra ya dice hacia dónde.
+  - Con una base negativa la dirección sigue a la diferencia: de −200 a −100 «sube 100,00 US$ (50,0 %)».
+  - Con el anterior en 0 se escribe la diferencia sin porcentaje y la razón; nunca «Infinity» ni «NaN %».
+  - Con el anterior ausente, `null`, `NaN` o no finito, o con el valor actual desconocido, no hay variación: se escribe «sin dato anterior» (o la cifra dice «sin dato», como en `Amount`).
+  - Un porcentaje que redondea a 0,0 con una diferencia que no es cero se escribe «menos de 0,1 %», no «0,0 %»; con la diferencia en cero, «sin cambio» y nada más.
+  - Un porcentaje que no sale finito (un anterior diminuto) se omite como el de base 0.
+- `DataPanel`: el panel del Design System (título sin caja, con el estilo `panel-title`) con un `status` controlado por el consumidor: `ready`, `loading` o `error`.
+  API propuesta: `title`, `status`, `error?` (el texto de qué falló, lo escribe el consumidor), `onRetry?`, `retryLabel` («reintentar»), `loadingLabel` («cargando»), `staleLabel` («datos anteriores; cargando los nuevos»), `staleErrorLabel` («no se pudieron actualizar; estos datos son anteriores») y `children` (los datos).
+  Qué muestra cada estado:
+  - `ready`: los datos, sin ninguna marca.
+  - `loading` sin datos (`children` vacío): solo la línea «cargando», escrita y sin animación, porque el sistema dice que nada más se anima.
+  - `loading` con datos: los datos siguen visibles, con `aria-busy="true"` en su contenedor y, encima, la línea escrita «datos anteriores; cargando los nuevos», enlazada al contenedor con `aria-describedby`. No se atenúan: bajar el contraste de una cifra la vuelve ilegible y no dice nada a quien no la ve.
+  - `error` sin datos: un `Notice` de error con el texto del consumidor y el botón «reintentar» si hay `onRetry`.
+  - `error` con datos: los datos siguen visibles, con la marca escrita «no se pudieron actualizar; estos datos son anteriores», el texto del error y el botón.
+  Qué se anuncia:
+  - Una región `role="status"` que existe siempre, vacía en `ready`, y lleva la línea de carga o de datos anteriores; montada desde el principio, porque una región viva que aparece con su texto no siempre se lee.
+  - `role="alert"` solo para el error sin datos, que deja el panel sin nada que leer. El error con datos anteriores va por la región de estado, porque se puede seguir leyendo.
+  - Al volver a `ready` desde `loading` la región de estado se vacía y no anuncia nada (ver «Preguntas abiertas»).
+  Dónde queda el foco:
+  - El panel no mueve el foco cuando el cambio viene de fuera, por ejemplo de un selector de periodo: el foco sigue en el selector.
+  - Al activar «reintentar», el botón desaparece con el error; el foco pasa al contenedor del panel (`tabIndex={-1}`), que se nombra con su título, y no cae a `<body>`.
+  - Un segundo «reintentar» seguido no llama otra vez a `onRetry`: el panel lo ignora hasta que `status` cambie.
+- Selector de periodo: **no es un componente nuevo**. Es `SegmentedControl` con `kind="options"`, que ya es un `radiogroup` con un punto de tabulación y flechas; un `PeriodSelector` encima solo cambiaría el nombre.
+  Se endurece `SegmentedControl` para los casos que un periodo hace probables, con tests:
+  - Sin opciones no pinta nada (un `radiogroup` sin `radio` no es válido) y no lanza.
+  - Con una sola opción pinta un único segmento elegido, que se alcanza con Tab.
+  - Con valores repetidos se queda con la primera aparición y avisa en consola en desarrollo, en vez de dejar dos segmentos con la misma clave y la misma ref.
+  - Si el valor elegido ya no está entre las opciones, ninguno se marca elegido (no se finge una selección) y el primero que se pueda elegir es el punto de tabulación, como ya hace; el componente no llama a `onChange` por su cuenta.
+  - Si `value` cambia desde fuera mientras el foco está en el grupo, el foco no salta y no se llama a `onChange`.
+  Una story `SegmentedControl · Periodo` (7 días, 30 días, 12 meses, año) y una nota en `docs/COMPONENTS.md`.
+- Una story `DataPanel · Con periodo` que compone `SegmentedControl`, `DataPanel`, `Metric` y `TrendChart` con una carga simulada, para revisar a mano el flujo de anuncios y foco. Es una story, no el dashboard compuesto.
+- El color de una cifra que suma pasa de verde a azul (Chris, 2026-10-20): `color-success-foreground` cambia de `#166534` a `#1d4ed8` (6,36:1 sobre `color-bg-secondary`) en `tokens/tokens.json`, con su `usage` al día. Cambia el aspecto de los abonos de `Amount` y `MovementsTable` de L-14.
+- Un estilo de texto nuevo `metric-value` en `tokens/tokens.json`, con los valores de `measure-input` y su `usage`.
+- Estilos con variables y clases `pui-` en `Metric.css` y `DataPanel.css`; stories de cada estado y de cada caso de la variación; tests; exportaciones de `Metric`, `DataPanel` y sus tipos; secciones en `docs/COMPONENTS.md`; y un changeset `minor`.
+
+**No objetivos.**
+- Barras, varias series con leyenda, orden y filtros en la tabla y el dashboard compuesto: siguen en el «Pendiente» de L-14.
+- Cargar datos, cancelar peticiones o descartar una respuesta que llega tarde: `DataPanel` muestra el `status` que recibe y el consumidor decide cuál es la última petición.
+- Un periodo a medida (desde, hasta) o un calendario.
+- Colorear la variación como buena o mala: que un gasto suba es malo y que un saldo suba es bueno, y eso lo sabe el consumidor (ver «Preguntas abiertas»).
+- Esqueletos, spinners o cualquier animación de carga.
+- Dependencias nuevas, tema oscuro y más tokens que `metric-value` y el valor nuevo de `color-success-foreground`.
+- Renombrar `color-success-foreground`: el nombre dice para qué sirve, no de qué color es.
+
+**Aceptación.**
+1. Un test de `formatChange` comprueba: anterior 0 (diferencia sin porcentaje y con su razón), anterior negativo (de −200 a −100 «sube» y 50,0 %), anterior `undefined`, `null`, `NaN` e `Infinity` (sin variación), valor actual desconocido (sin variación), diferencia que redondea a cero (`0.1 + 0.2 - 0.3`, «sin cambio» y sin porcentaje), porcentaje bajo 0,05 % con diferencia no nula («menos de 0,1 %»), y que ninguna salida contiene `Infinity`, `NaN` ni `−0`.
+2. Un test comprueba que `Metric` escribe el rótulo, la cifra con `Amount` y la variación con su palabra, la diferencia, el porcentaje y `comparison`, que sin `previous` escribe «sin dato anterior», y que el nombre accesible del grupo es el rótulo en minúsculas.
+3. Un test comprueba los tres estados de `DataPanel` sin datos y con datos: qué texto se ve, que los datos con `loading` llevan `aria-busy` y la marca enlazada por `aria-describedby`, que con `error` y datos siguen visibles con su marca, y que en `ready` no queda ninguna marca.
+4. Un test comprueba los anuncios de `DataPanel`: la región `role="status"` existe desde el primer render y en todos los estados, lleva «cargando» y la marca de datos anteriores, y `role="alert"` aparece solo en el error sin datos.
+5. Un test comprueba el foco de `DataPanel`: un cambio de `status` desde fuera no mueve el foco del control que lo tenía, y activar «reintentar» deja el foco en el contenedor del panel, no en `<body>`.
+6. Un test comprueba que dos activaciones seguidas de «reintentar» llaman a `onRetry` una sola vez, y que tras un nuevo `error` el botón vuelve a funcionar.
+7. Un test comprueba `SegmentedControl` sin opciones (no pinta nada y no lanza), con una sola, con valores repetidos (un segmento por valor y un aviso en consola), con un valor que no está entre las opciones (ninguno elegido, primer segmento en el orden de tabulación, `onChange` sin llamar) y con `value` cambiado desde fuera con el foco dentro (el foco no se mueve).
+8. Un test lee `Metric.css` y `DataPanel.css` y comprueba que no hay colores, tamaños ni radios literales fuera de las excepciones comentadas, que no hay `animation` ni `opacity` en los estados, y que no se usa `color-accent`.
+9. `npm run test:a11y` y `npm run test:touch` terminan en 0 con las stories nuevas, y `npm run test:visual:update` genera sus capturas, que Chris revisa.
+10. Se revisa a mano en Storybook (`npm run dev`) con teclado, `pointer: coarse` emulado y VoiceOver: el selector de periodo con flechas, la línea «cargando» que se oye una vez, el error que se oye al momento, el foco en el panel tras «reintentar», la marca de datos anteriores legible, y el anillo de foco de 2 px.
+11. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, `src/index.ts` exporta `Metric`, `DataPanel` y sus tipos, y `package.json` no gana dependencias.
+12. Un test comprueba que `color-success-foreground` es azul (tono entre 200° y 250°), que se distingue de `color-accent-ink` en al menos 15° de tono, y que cumple 4,5:1 sobre `color-bg-primary` y `color-bg-secondary`; las capturas de los abonos de `Amount` y `MovementsTable` se regeneran con `npm run test:visual:update` y Chris las revisa.
+13. Hay un changeset, `docs/COMPONENTS.md` documenta `Metric`, `DataPanel` y el uso de `SegmentedControl` como periodo, `docs/PLAN.md` actualiza la tabla de estado y «Estado actual», y la verificación del repositorio (`.verify.conf`) pasa.
+
+**Rollback.** Revertir el único commit del incremento y su changeset.
+
+**Decisiones ya tomadas.**
+Mandan `docs/COMPONENTS.md` y el Design System de claude.ai; valen las decisiones de L-14 (Chris, 2026-10-19).
+Chris pidió el 2026-10-20 acotar el incremento a dos o tres piezas del «Pendiente».
+Propuestas del agente que quedan confirmadas al aprobar el brief:
+- El selector de periodo es `SegmentedControl` con `kind="options"` y no un componente nuevo.
+- La dirección de una variación sale de la diferencia redondeada y no del porcentaje; con base negativa, el porcentaje es sobre su valor absoluto.
+- Los datos anteriores se dejan visibles y marcados en palabras, sin atenuar, en vez de ocultarse.
+- `role="alert"` solo en el error sin datos; todo lo demás va por una región `role="status"` que existe siempre.
+- Tras «reintentar» el foco va al contenedor del panel; los cambios que vienen de fuera no mueven el foco.
+
+Respuestas de Chris al brief, 2026-10-20:
+- La variación no lleva color: va en tinta con su palabra. Una prop `goodWhen` queda para otro incremento.
+- La cifra de `Metric` usa un estilo de texto nuevo, `metric-value`, con los valores de `measure-input`.
+- `Metric` va sin caja, con un filete superior de `color-border`.
+- No se anuncia «actualizado» al terminar una carga.
+- El título de `DataPanel` es un `h2` fijo.
+- El abono pasa de verde a azul. El agente eligió `#1d4ed8`: 6,36:1 sobre el papel, casi el contraste del verde (6,7:1), y un tono (unos 224°) que se separa del de `color-accent-ink` (unos 197°), el del anillo de foco y los enlaces. Además, azul frente a rojo se distingue mejor que verde frente a rojo con daltonismo rojo-verde.
+
+**Preguntas abiertas.**
+Ninguna.
+
+**Pendiente (incrementos siguientes, sin construir).**
+Barras y varias series con leyenda; orden y filtros en la tabla; el dashboard compuesto; y, si Chris lo pide, `goodWhen` en `Metric` y un `readyLabel` en `DataPanel`.
+
 ---
 
 ## Decisiones
@@ -608,3 +711,5 @@ Las tomó el agente el 2026-10-16, por encargo de Chris («toma tú las decision
 39. **Las pruebas de navegador esperaban poco (2026-10-16).** Cerrada: `sb-show-main` se pone antes de que React monte la story, así que `a11y`, `visual` y `touch` podían medir una página vacía y pasar sin comprobar nada. `openStory` espera ahora a que haya algo que medir; con eso, a11y pasa 48 de 48 y las áreas, 96 de 96, en tres ejecuciones.
 40. **Marcas de escala de `OptionCard` bajo 40 px (2026-10-16).** Cerrada: la prueba de áreas encontró que `variant="notch"` medía 27–39 px con puntero fino; ahora `OptionCard` fija `min-height: 40px`, y la marca conserva su número pegado, sin crecer el texto. Cambia la captura de `OptionField · Scale`. El artifact de claude.ai se republicó con ese CSS y con las teclas verticales de `SegmentedControl` (versión 17, 2026-10-16, con la confirmación de Chris); las huellas de `bundle.js` y `bundle.css` coinciden con lo generado.
 41. **Cifras de finanzas (2026-10-19, L-14).** Confirmadas por Chris: gráfica en SVG propio, `locale` opcional, color de estado con signo y palabra, tabla de valores visible. Las tomó el agente y hay que confirmar: el color solo va con `flow` (un `Amount` neutro con signo negativo no se colorea); un cero no lleva color ni palabra; el importe no numérico, incluida una cadena como `"12.5"`, se escribe «sin dato» en vez de convertirse; una moneda desconocida escribe la cifra y el código recibido en lugar de lanzar; la serie de `TrendChart` deja un hueco en un valor ausente en vez de unir los vecinos; el contenedor de `MovementsTable` es una región enfocable para poder desplazarla con el teclado.
+42. **Estados del dashboard (2026-10-20, L-15).** Confirmadas por Chris al aprobar el brief: selector de periodo como `SegmentedControl`, variación en tinta y por la diferencia redondeada, datos anteriores visibles y marcados, `alert` solo sin datos, foco al panel tras reintentar, `metric-value`, `Metric` con filete, sin anuncio de «actualizado», `h2` fijo, y el abono en azul (`#1d4ed8`, elegido por el agente). Las tomó el agente al construir y hay que confirmar: el aviso de valores repetidos de `SegmentedControl` sale siempre, no solo en desarrollo, porque la librería no puede leer `process.env` sin romper el bundle del Design System; el candado de «reintentar» se abre cuando cambian `status` o `error`; tras reintentar, el foco no se mueve si quien reintentó ya está en otro control; una diferencia que no cabe en un número (`1e308` frente a `−1e308`) no escribe variación; y el error con datos se escribe en `color-danger-foreground`.
+43. **La comparación visual no ve un cambio de color en texto pequeño (2026-10-20).** Abierta: al pasar el abono de verde a azul, `npm run test:visual` siguió en verde con las referencias viejas, y `test:visual:update` no las reescribió, porque la diferencia cabe en la tolerancia por defecto de Playwright. Se borraron y regeneraron a mano las de `Amount · Flow` y `MovementsTable`. Propuesta: bajar `threshold` en `toHaveScreenshot`, o comprobar los colores con un test de estilos computados; es cambio de infraestructura y lo decide Chris.

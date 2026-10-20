@@ -54,5 +54,11 @@ export type { Movement, MovementsTableLabels, MovementsTableProps } from './comp
 export { TrendChart } from './components/TrendChart/TrendChart';
 export type { TrendChartLabels, TrendChartProps, TrendPoint } from './components/TrendChart/TrendChart';
 
+export { Metric } from './components/Metric/Metric';
+export type { MetricLabels, MetricProps } from './components/Metric/Metric';
+
+export { DataPanel } from './components/DataPanel/DataPanel';
+export type { DataPanelProps, DataPanelStatus } from './components/DataPanel/DataPanel';
+
 export { tokenNames, cssVar, fontFamilies, typeStyles } from './tokens';
 export type { TokenName, FontFamily, TypeStyle } from './tokens';

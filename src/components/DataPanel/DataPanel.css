@@ -1,0 +1,43 @@
+/* El panel del sistema: sin fondo, sin borde y sin relleno; lo separa quien lo coloca. */
+.pui-data-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Recibe el foco tras reintentar, para que no caiga a la página; el anillo dice dónde quedó. */
+.pui-data-panel:focus {
+  outline: none;
+}
+
+.pui-data-panel:focus-visible {
+  outline: 2px solid var(--color-accent-ink);
+  outline-offset: 2px;
+}
+
+.pui-data-panel__title {
+  margin: 0;
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+}
+
+/*
+ * La región existe siempre para que los lectores la sigan; vacía no ocupa
+ * sitio. No se oculta con display: none, que la sacaría del árbol accesible.
+ */
+.pui-data-panel__status {
+  color: var(--color-text-secondary);
+}
+
+.pui-data-panel__status:empty {
+  margin-top: calc(-1 * var(--space-3));
+}
+
+/* Un error se lee por sus palabras; el rojo las refuerza. */
+.pui-data-panel__status--error {
+  color: var(--color-danger-foreground);
+}
+
+.pui-data-panel__retry {
+  align-self: flex-start;
+}

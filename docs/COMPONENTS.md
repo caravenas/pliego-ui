@@ -72,6 +72,8 @@ interface SegmentedControlProps<V extends string> {
 - `tabs`: `role="tablist"`, un solo punto de tabulación, flechas izquierda y derecha con vuelta, Inicio y Fin; la flecha selecciona al mover. No responde a arriba y abajo. No pinta los paneles.
 - `options`: `role="radiogroup"` con `role="radio"` y `aria-checked`, con el mismo teclado y además arriba y abajo, como un radiogroup nativo.
 - `id` opcional: da a cada segmento el id `${id}-${value}`. Los segmentos `disabled` se saltan al navegar.
+- Sin opciones no pinta nada. Con valores repetidos pinta la primera aparición y avisa en consola. Si `value` no está entre las opciones, ninguno se marca elegido y el componente no lo cambia por su cuenta.
+- **Selector de periodo** (L-15): es un `SegmentedControl` con `kind="options"`, no un componente aparte. El cambio de periodo lo anuncia el `DataPanel` que recarga, no el selector.
 
 ## OptionField / OptionCard (L-4)
 
@@ -154,7 +156,7 @@ interface SpecStepProps {
 - **Origen**: ninguno; el Design System no cubre cifras monetarias.
 - **API**: `{ value, currency, locale?, flow?, creditLabel = 'abono', debitLabel = 'cargo', unknownLabel = 'sin dato' }`.
 - El valor va en unidades mayores y la moneda es obligatoria; sin `locale` se usa el del entorno. Formatea con `Intl`; un valor que no es un número finito se escribe «sin dato» y una moneda o un idioma inválidos no lanzan.
-- Mono con `tabular-nums`. Un negativo lleva el signo `−` en el texto. Con `flow`, un abono y un cargo llevan además su palabra y su color (`color-success-foreground`, `color-danger-foreground`): el color refuerza, nunca sustituye.
+- Mono con `tabular-nums`. Un negativo lleva el signo `−` en el texto. Con `flow`, un abono y un cargo llevan además su palabra y su color (`color-success-foreground`, azul desde L-15, y `color-danger-foreground`): el color refuerza, nunca sustituye.
 
 ## ✅ MovementsTable (L-14)
 
@@ -167,6 +169,24 @@ interface SpecStepProps {
 - **API**: `{ title, points: { label, value }[], currency, locale?, labels? }`.
 - Línea en SVG propio, de tinta, con `role="img"` y un nombre que incluye el rango. `color-accent` solo rellena el último punto. Un valor ausente deja un hueco; un solo punto se dibuja sin línea; sin datos dice «sin datos para graficar».
 - Los mismos valores van en una tabla visible dentro de un `<details>` abierto: es lo que lee quien no ve el dibujo.
+
+## ✅ Metric (L-15)
+
+- **Origen**: ninguno; el Design System no cubre cifras clave.
+- **API**: `{ label, value, previous?, currency, locale?, comparison?, labels? }`. `labels`: `up` «sube», `down` «baja», `flat` «sin cambio», `noPrevious` «sin dato anterior», `noPercent` «sin porcentaje: el valor anterior es 0», `lessThan` «menos de».
+- Un grupo nombrado por su rótulo; la cifra va con `Amount` en el estilo `metric-value`, y la variación debajo, en `mono-note`: «sube $240.00 (24.0%) frente a septiembre».
+- La dirección sale de la diferencia redondeada a los decimales de la moneda, no del porcentaje: de −200 a −100 «sube», y el porcentaje es sobre el valor absoluto del anterior. Con el anterior en 0 no hay porcentaje y se dice por qué; un cambio real que redondea a 0,0 % se escribe «menos de 0,1 %».
+- La variación va en tinta, sin color: que suba es bueno en un saldo y malo en un gasto.
+- Sin caja: un filete superior de `color-border`.
+
+## ✅ DataPanel (L-15)
+
+- **Origen**: la tarjeta `Panel` del Design System (título sin caja).
+- **API**: `{ title, status: 'ready' | 'loading' | 'error', error?, onRetry?, retryLabel, loadingLabel, staleLabel, staleErrorLabel, loadErrorLabel, children? }`. El título es un `h2` y nombra la región.
+- Los datos anteriores no se ocultan ni se atenúan: siguen legibles, con una marca escrita («datos anteriores; cargando los nuevos», «no se pudieron actualizar; estos datos son anteriores») enlazada por `aria-describedby`, y con `aria-busy` mientras cargan. Sin datos, «cargando» se escribe sin animación.
+- Una región `role="status"` existe siempre y lleva la carga y las marcas. Solo el error sin datos usa `role="alert"` (un `Notice` de error).
+- Un cambio de `status` no mueve el foco. Tras «reintentar», el foco pasa al panel (`tabIndex={-1}`, con el anillo de `color-accent-ink`) en vez de caer a la página, salvo que quien reintentó ya esté en otro control. Un segundo «reintentar» no llama otra vez a `onRetry` hasta que cambian `status` o `error`.
+- No carga datos ni descarta respuestas tardías: muestra el `status` que recibe.
 
 ## Tooltip (pendiente)
 

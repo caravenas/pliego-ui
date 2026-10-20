@@ -7,7 +7,7 @@ export const MINUS = '−';
 
 const formatters = new Map<string, Intl.NumberFormat | null>();
 
-function usableLocale(locale: string | undefined): string | undefined {
+export function usableLocale(locale: string | undefined): string | undefined {
   if (locale === undefined) return undefined;
   try {
     new Intl.NumberFormat(locale);

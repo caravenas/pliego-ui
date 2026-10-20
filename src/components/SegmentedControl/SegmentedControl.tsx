@@ -1,4 +1,4 @@
-import { forwardRef, useRef, type KeyboardEvent, type ReactElement, type Ref } from 'react';
+import { forwardRef, useEffect, useMemo, useRef, type KeyboardEvent, type ReactElement, type Ref } from 'react';
 import { cx } from '../../utils/cx';
 import { nextValue, tabStopValue } from './useRovingSelection';
 import './SegmentedControl.css';
@@ -31,10 +31,15 @@ export interface SegmentedControlProps<V extends string> {
  * `options` es un `radiogroup`, porque elige un valor entre varios.
  */
 function SegmentedControlImpl<V extends string>(
-  { kind, label, value, options, onChange, id, className }: SegmentedControlProps<V>,
+  { kind, label, value, options: given, onChange, id, className }: SegmentedControlProps<V>,
   ref: Ref<HTMLDivElement>,
 ) {
   const segments = useRef(new Map<V, HTMLButtonElement>());
+  const { options, repeated } = useMemo(() => uniqueOptions(given), [given]);
+  const repeatedKey = repeated.join(',');
+  useEffect(() => {
+    if (repeatedKey) console.warn(`SegmentedControl «${label}»: valores repetidos (${repeatedKey}); se pinta solo la primera aparición.`);
+  }, [repeatedKey, label]);
   const isTabs = kind === 'tabs';
   const tabStop = tabStopValue(options, value);
 
@@ -45,6 +50,9 @@ function SegmentedControlImpl<V extends string>(
     segments.current.get(next)?.focus();
     if (next !== value) onChange(next);
   };
+
+  // Un tablist o un radiogroup sin segmentos no es válido y no ofrece nada que elegir.
+  if (options.length === 0) return null;
 
   return (
     <div
@@ -78,6 +86,24 @@ function SegmentedControlImpl<V extends string>(
       })}
     </div>
   );
+}
+
+/**
+ * Se queda con la primera aparición de cada valor. Dos segmentos con el mismo
+ * valor compartirían clave, ref e id, y las flechas no sabrían a cuál ir.
+ */
+function uniqueOptions<V extends string>(options: SegmentedOption<V>[]) {
+  const seen = new Set<V>();
+  const repeated = new Set<V>();
+  const unique = options.filter((option) => {
+    if (seen.has(option.value)) {
+      repeated.add(option.value);
+      return false;
+    }
+    seen.add(option.value);
+    return true;
+  });
+  return { options: unique, repeated: [...repeated] };
 }
 
 // forwardRef pierde el parámetro de tipo del componente: se restituye aquí.

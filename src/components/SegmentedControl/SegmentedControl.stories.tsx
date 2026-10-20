@@ -37,6 +37,22 @@ export const Options: Story = {
   args: { kind: 'options', label: 'Formato', value: 'a5', options: formats, onChange: () => {} },
 };
 
+/** Un selector de periodo es un `options`: elige el valor con el que se cargan los datos. */
+export const Period: Story = {
+  args: {
+    kind: 'options',
+    label: 'periodo',
+    value: '30d',
+    options: [
+      { value: '7d', label: '7 días' },
+      { value: '30d', label: '30 días' },
+      { value: '12m', label: '12 meses' },
+      { value: 'year', label: 'año' },
+    ],
+    onChange: () => {},
+  },
+};
+
 export const WithDisabledSegment: Story = {
   args: {
     kind: 'options',

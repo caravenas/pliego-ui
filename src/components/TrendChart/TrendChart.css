@@ -1,0 +1,108 @@
+.pui-trend {
+  margin: 0;
+}
+
+.pui-trend__title {
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+
+.pui-trend__summary {
+  margin: var(--space-2) 0;
+  color: var(--color-text-secondary);
+}
+
+.pui-trend__empty {
+  margin: var(--space-4) 0;
+  color: var(--color-text-muted);
+}
+
+.pui-trend__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* Los pesos de 1 px y 2 px son literales del sistema; el trazo no crece con el SVG. */
+.pui-trend__baseline {
+  stroke: var(--color-border);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.pui-trend__line {
+  fill: none;
+  stroke: var(--color-text-primary);
+  stroke-width: 2px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.pui-trend__dot {
+  fill: var(--color-text-primary);
+}
+
+/* color-accent solo rellena; el contorno de tinta es el que da el significado. */
+.pui-trend__last {
+  fill: var(--color-accent);
+  stroke: var(--color-text-primary);
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+}
+
+.pui-trend__values {
+  margin-top: var(--space-3);
+}
+
+.pui-trend__toggle {
+  display: flex;
+  align-items: center;
+  /* 40 px de área mínima, 44 con puntero grueso, como todo control. */
+  min-height: 40px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+@media (pointer: coarse) {
+  .pui-trend__toggle {
+    min-height: 44px;
+  }
+}
+
+/* Foco: anillo de 2 px de color-accent-ink, separado del borde. */
+.pui-trend__toggle:focus-visible {
+  outline: 2px solid var(--color-accent-ink);
+  outline-offset: 2px;
+}
+
+.pui-trend__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pui-trend__head {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.pui-trend__head--value,
+.pui-trend__value {
+  text-align: right;
+}
+
+.pui-trend__cell {
+  padding: var(--space-2) 0;
+  border-bottom: 1px dotted var(--color-border);
+}
+
+.pui-trend__label {
+  color: var(--color-text-secondary);
+  font-weight: inherit;
+  text-align: left;
+}

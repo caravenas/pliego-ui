@@ -45,5 +45,14 @@ export type { DrawerProps } from './components/Drawer/Drawer';
 export { Toast, ToastProvider } from './components/Toast/Toast';
 export type { ToastProps, ToastProviderProps } from './components/Toast/Toast';
 
+export { Amount } from './components/Amount/Amount';
+export type { AmountProps } from './components/Amount/Amount';
+
+export { MovementsTable } from './components/MovementsTable/MovementsTable';
+export type { Movement, MovementsTableLabels, MovementsTableProps } from './components/MovementsTable/MovementsTable';
+
+export { TrendChart } from './components/TrendChart/TrendChart';
+export type { TrendChartLabels, TrendChartProps, TrendPoint } from './components/TrendChart/TrendChart';
+
 export { tokenNames, cssVar, fontFamilies, typeStyles } from './tokens';
 export type { TokenName, FontFamily, TypeStyle } from './tokens';

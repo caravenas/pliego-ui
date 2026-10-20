@@ -23,6 +23,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 - L-10 cerrado (`e10826c`, 2026-10-13): `@caravenas/pliego-ui@0.1.0` se instala desde un proyecto vacío con `@caravenas:registry` en su `.npmrc`, trae `@radix-ui/react-dialog` y `react-toast` como dependencias, exporta los 18 componentes y `./styles.css` y `./tokens.json` resuelven.
 - L-13 cerrado (2026-10-16, `50d65e0`): `npm run ds:build` produce el árbol y `npm run ds:check` (33 pruebas) lo comprueba. Chris confirmó la publicación y se publicó en el artifact: 14 tarjetas vivas con `bundle.js` (`window.PliegoUI`), `bundle.css`, tokens de la librería (con `space-7`) y el README de marca al día; se sustituyeron `FormField`, `OptionGroup`, `CentralTabs` y `Notices`; `AppHeader`, `CatalogBoard`, `CatalogPanel`, `Panel` y la cubierta se conservaron. Las huellas de `bundle.js`, `bundle.css`, `tokens.json` y de un preview coinciden con lo generado, y las tarjetas se ven vivas en el artifact abierto. La copia de seguridad previa está en `design-system/backup-2026-10-15/` (local, ignorada por git).
 - Decisiones cerradas (2026-10-16): las 38 abiertas se resolvieron (ver «Decisiones»), con tres cambios de código: teclas arriba y abajo en `options`, `min-height: 40px` en `OptionCard` y una espera correcta en las pruebas de navegador, que además miden ahora las áreas de puntero en las 48 stories.
+- L-14 cerrado (2026-10-19): `Amount`, `MovementsTable` y `TrendChart` (SVG propio) con el token `color-success-foreground`; 163 tests, 61 stories sin violaciones de axe, áreas de puntero medidas y 61 capturas. Quedan pendientes los incrementos siguientes del dashboard (ver «Pendiente» de L-14) y republicar el Design System, que no incluye aún las tarjetas ni el token nuevos.
 - **Siguiente:** no queda ningún incremento abierto salvo `Tooltip`, que solo se hace si aparece un caso real. L-12 (migrar PliegoStack) se descartó: es trabajo de ese proyecto.
 
 | Id | Incremento | Estado | Commit |
@@ -40,6 +41,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-10 | Primera publicación, 0.1.0 | hecho (publicado e instalado desde un proyecto vacío, 2026-10-13) | `e10826c`, tag `v0.1.0` |
 | L-11 | Radix: `Drawer` (catálogo), `Tooltip`, `Toast` | parcial: `Drawer` y `Toast` hechos; `Tooltip` pendiente (solo con un caso real) | ver `git log` (`feat: add Drawer`, `feat: add Toast`) |
 | L-12 | Migrar PliegoStack a la librería | descartado (Chris, 2026-10-13): es trabajo del proyecto PliegoStack | |
+| L-14 | `Amount`, `MovementsTable` y `TrendChart` | hecho, con la revisión manual de Chris pendiente | ver `git log` (`feat: add Amount, MovementsTable and TrendChart`) |
 | L-13 | Re-sincronizar el Design System desde la librería | hecho (publicado en el artifact el 2026-10-16, versión 14) | `50d65e0` |
 
 Orden razonado: primero la red de seguridad (CI), luego los primitivos de formulario que todo lo demás usa (`Field`), luego los patrones propios en el orden en que aparecen en la ficha técnica, y solo entonces publicar y migrar. Radix entra cuando haga falta, no antes.
@@ -505,6 +507,60 @@ Las siguientes las propone el agente que escribió este brief y quedan confirmad
 **Preguntas abiertas.**
 Ninguna impide empezar.
 
+## L-14 — Cifras de finanzas: `Amount`, `MovementsTable` y `TrendChart`
+
+Primer incremento de un dashboard de finanzas. Sin origen en PliegoStack: es trabajo nuevo, y el Design System de claude.ai **no cubre** cifras monetarias, tablas de movimientos ni gráficas; las decisiones de abajo llenan ese vacío y las confirmó Chris.
+
+**Objetivo.**
+Que quien construye un dashboard de finanzas pueda mostrar un importe, una lista de movimientos y la evolución de una serie con el mismo lenguaje que el resto de la librería, de modo que una persona lo lea y lo recorra con el teclado sin depender del color.
+
+**Alcance.**
+- `Amount`: un importe en `mono` con `tabular-nums`, formateado con `Intl.NumberFormat` a partir de `value`, `currency` (código ISO 4217) y `locale`. Un negativo lleva su signo en el texto; un valor ausente o no numérico se escribe «sin dato», nunca `0` ni `NaN`.
+- `MovementsTable`: una `<table>` con `<caption>`, `<th scope>` y columnas fecha, concepto e importe (con `Amount`, alineado a la derecha). Sin movimientos muestra una fila con «sin movimientos». Es solo lectura: sin orden, paginación ni selección.
+- `TrendChart`: gráfica de línea en SVG propio con `role="img"`, nombre accesible y una tabla de los mismos valores disponible en el DOM, que es el equivalente textual. Sin puntos muestra «sin datos para graficar»; con un solo punto dibuja un punto marcado y su valor escrito, sin línea.
+- Stories de los tres (por defecto, vacío, un solo punto, negativos, valor desconocido), tests, exportaciones con tipos y un changeset `minor`.
+- El resto del dashboard queda anotado como pendiente en este plan (ver «Pendiente») y no se construye.
+
+**No objetivos.**
+- Barras, tarta, apiladas, varias series o leyendas: pendiente.
+- Tarjeta de saldo o KPI con variación, selector de periodo, filtros y orden de la tabla: pendiente.
+- Conversión entre monedas, cálculo de totales o saldos: el consumidor aporta los valores ya calculados.
+- Dependencias nuevas, tema oscuro y más tokens que `color-success-foreground`.
+- Interacción con puntero en la gráfica (tooltip, cursor): la lectura es por la tabla.
+
+**Aceptación.**
+1. Un test comprueba que `Amount` formatea con la moneda y el `locale` recibidos (`USD` con `en-US` y `CLP` con `es-CL` dan cada uno su forma) y que sin `locale` usa el `Intl` del entorno sin lanzar.
+2. Un test comprueba que `Amount` con `undefined`, `null`, `NaN`, `Infinity` y una cadena no numérica escribe «sin dato», que un negativo lleva signo en el texto, y que una moneda inválida no lanza un error.
+3. Un test lee `Amount.css` y comprueba que usa `mono` y `tabular-nums`, que un abono y un cargo llevan color (`color-success-foreground`, `color-danger-foreground`) y además signo y palabra, y que ambos colores cumplen 4,5:1 sobre `color-bg-primary`.
+4. Un test comprueba que `MovementsTable` tiene `caption`, cabeceras con `scope`, importes alineados a la derecha, y que sin filas muestra «sin movimientos» y no una tabla vacía muda.
+5. Un test comprueba que `TrendChart` es `role="img"` con nombre accesible, que expone una tabla con todos los valores, y que `sin datos`, un punto y una serie con huecos (`null`) dan cada uno su texto y no una línea rota ni `NaN` en el SVG.
+6. Un test comprueba que `TrendChart` no usa `color-accent` en texto ni en bordes con significado (solo rellena el punto final), que la tabla de valores es visible en un `<details>` y que sus trazos salen de variables, no de literales.
+7. Un test lee los `.css` de los tres y comprueba que no hay colores, tamaños ni radios literales fuera de las excepciones comentadas.
+8. `npm run test:a11y` y `npm run test:touch` terminan en 0 con las stories nuevas, y `npm run test:visual:update` genera sus capturas, que Chris revisa.
+9. Se revisa a mano en Storybook (`npm run dev`) con teclado y `pointer: coarse` emulado: los importes se alinean por la cifra, la tabla se recorre con el teclado en orden lógico, la gráfica se entiende sin color y el foco de 2 px es visible.
+10. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, `src/index.ts` exporta los tres componentes y sus tipos, y `package.json` no gana dependencias.
+11. Hay un changeset, `docs/PLAN.md` actualiza la tabla de estado y «Estado actual», y la verificación del repositorio (`.verify.conf`) pasa.
+
+**Pendiente (incrementos siguientes, sin construir).**
+Tarjeta de saldo / KPI con variación; barras y varias series con leyenda; selector de periodo; orden y filtros en la tabla; estado de carga y de error de un panel; el dashboard compuesto.
+
+**Rollback.** Revertir el único commit del incremento y el changeset.
+
+**Decisiones ya tomadas.**
+Mandan `docs/COMPONENTS.md` y el Design System de claude.ai. Respuestas de Chris, 2026-10-19:
+- La gráfica es **SVG propio**, solo línea; sin dependencias. Se reabre si hacen falta tres o más tipos.
+- `locale` es **opcional**: sin él se usa el del consumidor (`Intl` con `undefined`). La moneda es obligatoria y no hay una por defecto.
+- Las cifras llevan **color de estado**. Se añade un token `color-success-foreground` (con su `usage`) y se usa el `color-danger-foreground` que ya existe; ambos con contraste de texto sobre `color-bg-primary` verificado en un test. Reabre la decisión 2 («aplazada»). El color **nunca va solo**: signo y palabra («abono», «cargo») siguen escritos.
+- `color-accent` solo rellena el punto final de la gráfica; la línea es de tinta. Nunca texto ni bordes con significado.
+- La tabla de valores de `TrendChart` es **visible**, en un `<details>`.
+Propuestas del agente que quedan confirmadas al aprobar el brief:
+- `Amount` recibe el valor en unidades mayores como `number` (12,50, no centavos).
+- Un negativo lleva el signo escrito (U+2212) además del color.
+- Las fechas entran como `string` ISO y no se reformatean salvo que el consumidor pase un `formatDate`.
+
+**Preguntas abiertas.**
+Ninguna impide empezar.
+
 ---
 
 ## Decisiones
@@ -512,7 +568,7 @@ Ninguna impide empezar.
 Las tomó el agente el 2026-10-16, por encargo de Chris («toma tú las decisiones de las preguntas abiertas»). Están **cerradas** salvo las marcadas como **aplazadas**, que dicen qué las reabriría. Chris puede cambiar cualquiera.
 
 1. **Radiogroup frente a `aria-pressed`.** Cerrada: `SegmentedControl` es `tablist` y `radiogroup` con tabindex móvil (Chris, 2026-10-12); `OptionCard` mantiene `aria-pressed` (14).
-2. **Colores de estado sin token.** Aplazada: no se añaden `color-success` ni `color-warning`. El punto de `.catalog-persistence` es de la app, no de la librería. Se reabre si un componente de la librería los necesita.
+2. **Colores de estado sin token.** Reabierta y resuelta en parte por L-14 (Chris, 2026-10-19): se añade `color-success-foreground` para los abonos y se usa `color-danger-foreground` para los cargos. No hay `color-warning`. El punto de `.catalog-persistence` sigue siendo de la app.
 3. **Botón en cápsula o con `radius-md`.** Cerrada: `radius-md`, como en el código. Un botón no es un control de entrada, que es lo que el sistema dice que va en cápsula.
 4. **Tema oscuro.** Cerrada: no hay. No está en el plan ni lo pide ningún consumidor. Se reabre si lo pide uno.
 5. **Versiones.** Aplazada: no se suben las versiones mayores (Vite, Storybook, TS) sin un motivo. Los 28 avisos de `npm audit` son de herramientas de desarrollo. Se hace en un incremento propio cuando una dependencia lo exija.
@@ -551,3 +607,4 @@ Las tomó el agente el 2026-10-16, por encargo de Chris («toma tú las decision
 38. **Mantener el artifact al día.** Cerrada: republicar es manual, con confirmación de Chris. Un CI que lo republique podría pisar ediciones hechas desde la página.
 39. **Las pruebas de navegador esperaban poco (2026-10-16).** Cerrada: `sb-show-main` se pone antes de que React monte la story, así que `a11y`, `visual` y `touch` podían medir una página vacía y pasar sin comprobar nada. `openStory` espera ahora a que haya algo que medir; con eso, a11y pasa 48 de 48 y las áreas, 96 de 96, en tres ejecuciones.
 40. **Marcas de escala de `OptionCard` bajo 40 px (2026-10-16).** Cerrada: la prueba de áreas encontró que `variant="notch"` medía 27–39 px con puntero fino; ahora `OptionCard` fija `min-height: 40px`, y la marca conserva su número pegado, sin crecer el texto. Cambia la captura de `OptionField · Scale`. El artifact de claude.ai se republicó con ese CSS y con las teclas verticales de `SegmentedControl` (versión 17, 2026-10-16, con la confirmación de Chris); las huellas de `bundle.js` y `bundle.css` coinciden con lo generado.
+41. **Cifras de finanzas (2026-10-19, L-14).** Confirmadas por Chris: gráfica en SVG propio, `locale` opcional, color de estado con signo y palabra, tabla de valores visible. Las tomó el agente y hay que confirmar: el color solo va con `flow` (un `Amount` neutro con signo negativo no se colorea); un cero no lleva color ni palabra; el importe no numérico, incluida una cadena como `"12.5"`, se escribe «sin dato» en vez de convertirse; una moneda desconocida escribe la cifra y el código recibido en lugar de lanzar; la serie de `TrendChart` deja un hueco en un valor ausente en vez de unir los vecinos; el contenedor de `MovementsTable` es una región enfocable para poder desplazarla con el teclado.

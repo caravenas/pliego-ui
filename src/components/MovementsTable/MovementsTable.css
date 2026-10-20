@@ -1,0 +1,59 @@
+.pui-movements {
+  overflow-x: auto;
+}
+
+/* Foco: anillo de 2 px de color-accent-ink, separado del borde. */
+.pui-movements:focus-visible {
+  outline: 2px solid var(--color-accent-ink);
+  outline-offset: 2px;
+}
+
+.pui-movements__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pui-movements__caption {
+  padding-bottom: var(--space-2);
+  color: var(--color-text-secondary);
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.pui-movements__head {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  text-align: left;
+  text-transform: uppercase;
+}
+
+/* Un importe se compara con otros en columna: va pegado al borde derecho. */
+.pui-movements__head--amount,
+.pui-movements__amount {
+  text-align: right;
+}
+
+.pui-movements__cell {
+  padding: var(--space-3);
+  /* Punteado, como en ResultList: las filas se leen de lado a lado. */
+  border-bottom: 1px dotted var(--color-border);
+  vertical-align: baseline;
+}
+
+.pui-movements__date {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.pui-movements__description {
+  color: var(--color-text-primary);
+  font-weight: inherit;
+  text-align: left;
+}
+
+.pui-movements__empty {
+  padding: var(--space-4) var(--space-3);
+  color: var(--color-text-muted);
+  text-align: center;
+}

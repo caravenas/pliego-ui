@@ -149,6 +149,25 @@ interface SpecStepProps {
 - Sobre `@radix-ui/react-toast`. Una `note` se va sola a los 5 s y se anuncia con calma; un `error` no se va solo (`duration` infinita) y se anuncia al momento.
 - Mismo tratamiento visual que `Notice`, sin sombra (el sistema las desactiva). No hay API imperativa.
 
+## ✅ Amount (L-14)
+
+- **Origen**: ninguno; el Design System no cubre cifras monetarias.
+- **API**: `{ value, currency, locale?, flow?, creditLabel = 'abono', debitLabel = 'cargo', unknownLabel = 'sin dato' }`.
+- El valor va en unidades mayores y la moneda es obligatoria; sin `locale` se usa el del entorno. Formatea con `Intl`; un valor que no es un número finito se escribe «sin dato» y una moneda o un idioma inválidos no lanzan.
+- Mono con `tabular-nums`. Un negativo lleva el signo `−` en el texto. Con `flow`, un abono y un cargo llevan además su palabra y su color (`color-success-foreground`, `color-danger-foreground`): el color refuerza, nunca sustituye.
+
+## ✅ MovementsTable (L-14)
+
+- **API**: `{ caption, movements: { id, date, description, amount }[], currency, locale?, formatDate?, labels? }`.
+- `<table>` con `caption`, cabeceras con `scope` y el concepto como cabecera de fila. El contenedor es una región con nombre y enfocable, porque la tabla se desplaza de lado en pantallas estrechas. Importes a la derecha, con `Amount flow`.
+- Sin movimientos dice «sin movimientos». Solo lectura: sin orden, filtros ni paginación.
+
+## ✅ TrendChart (L-14)
+
+- **API**: `{ title, points: { label, value }[], currency, locale?, labels? }`.
+- Línea en SVG propio, de tinta, con `role="img"` y un nombre que incluye el rango. `color-accent` solo rellena el último punto. Un valor ausente deja un hueco; un solo punto se dibuja sin línea; sin datos dice «sin datos para graficar».
+- Los mismos valores van en una tabla visible dentro de un `<details>` abierto: es lo que lee quien no ve el dibujo.
+
 ## Tooltip (pendiente)
 
 - Solo si aparece un caso real. Con `@radix-ui/react-tooltip`.

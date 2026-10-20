@@ -1,0 +1,23 @@
+.pui-amount {
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  /* Las cifras se alinean en columna cuando sus dígitos miden lo mismo. */
+  font-variant-numeric: tabular-nums;
+}
+
+.pui-amount--unknown {
+  color: var(--color-text-muted);
+}
+
+/* El color acompaña al signo y a la palabra; ambos pasan 4,5:1 sobre el papel. */
+.pui-amount--credit {
+  color: var(--color-success-foreground);
+}
+
+.pui-amount--debit {
+  color: var(--color-danger-foreground);
+}
+
+.pui-amount__word {
+  text-transform: uppercase;
+}

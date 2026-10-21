@@ -177,3 +177,33 @@ describe('CSS de DataPanel', () => {
     expect(code).toMatch(/:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--color-accent-ink\)/);
   });
 });
+
+describe('DataPanel · announce', () => {
+  it('por omisión la región de estado es viva y el error sin datos es una alerta, como en L-15', () => {
+    render(panel({ status: 'error', error: 'el banco no respondió' }));
+    expect(statusRegion()).not.toHaveAttribute('aria-live');
+    expect(screen.getByRole('alert')).toHaveTextContent('el banco no respondió');
+  });
+
+  it('con announce={false} la región de estado no es viva y el texto sigue a la vista', () => {
+    render(panel({ status: 'loading', announce: false, children: data }));
+    expect(statusRegion()).toHaveAttribute('aria-live', 'off');
+    expect(statusRegion()).toHaveTextContent('datos anteriores; cargando los nuevos');
+    expect(statusRegion()).toBeVisible();
+  });
+
+  it('con announce={false} el error sin datos no es una alerta pero se lee', () => {
+    render(panel({ status: 'error', error: 'el banco no respondió', announce: false }));
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByText('el banco no respondió')).toBeVisible();
+  });
+
+  it('con announce={false} reintentar sigue dejando el foco en el panel', async () => {
+    const user = userEvent.setup();
+    const onRetry = vi.fn();
+    const { rerender } = render(panel({ status: 'error', error: 'x', announce: false, onRetry }));
+    await user.click(screen.getByRole('button', { name: 'reintentar' }));
+    rerender(panel({ status: 'loading', announce: false, onRetry }));
+    expect(screen.getByRole('region', { name: 'saldo' })).toHaveFocus();
+  });
+});

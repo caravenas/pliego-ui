@@ -33,6 +33,13 @@ export interface DataPanelProps extends Omit<HTMLAttributes<HTMLElement>, 'title
   staleErrorLabel?: string;
   /** El error cuando no hay datos y el consumidor no escribió `error`. */
   loadErrorLabel?: string;
+  /**
+   * Con `false` el panel no habla por su cuenta: la región de estado deja de ser
+   * viva y el error sin datos deja de ser una alerta. Es para una pantalla que
+   * reúne varios paneles y anuncia por todos con un solo `DashboardStatus`; el
+   * texto sigue a la vista y se lee navegando.
+   */
+  announce?: boolean;
   /** Los datos. Vacío, el panel no tiene nada anterior que mostrar. */
   children?: ReactNode;
 }
@@ -58,6 +65,7 @@ export const DataPanel = forwardRef<HTMLElement, DataPanelProps>(function DataPa
     staleLabel = 'datos anteriores; cargando los nuevos',
     staleErrorLabel = 'no se pudieron actualizar; estos datos son anteriores',
     loadErrorLabel = 'no se pudieron cargar los datos',
+    announce = true,
     children,
     className,
     ...rest
@@ -120,11 +128,17 @@ export const DataPanel = forwardRef<HTMLElement, DataPanelProps>(function DataPa
       <div
         id={statusId}
         role="status"
+        aria-live={announce ? undefined : 'off'}
         className={cx('pui-data-panel__status pui-type-mono-note', isError && 'pui-data-panel__status--error')}
       >
         {statusText}
       </div>
-      {isError && !hasData ? <Notice variant="error">{error ?? loadErrorLabel}</Notice> : null}
+      {isError && !hasData ? (
+        // Sin `role` propio el Notice conserva el suyo (`alert`); `undefined` lo borraría.
+        <Notice variant="error" {...(announce ? {} : { role: 'none' })}>
+          {error ?? loadErrorLabel}
+        </Notice>
+      ) : null}
       {isError && onRetry ? (
         <Button className="pui-data-panel__retry" aria-disabled={retrying || undefined} onClick={retry}>
           {retryLabel}

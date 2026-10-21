@@ -200,7 +200,28 @@ interface SpecStepProps {
 - Los datos anteriores no se ocultan ni se atenúan: siguen legibles, con una marca escrita («datos anteriores; cargando los nuevos», «no se pudieron actualizar; estos datos son anteriores») enlazada por `aria-describedby`, y con `aria-busy` mientras cargan. Sin datos, «cargando» se escribe sin animación.
 - Una región `role="status"` existe siempre y lleva la carga y las marcas. Solo el error sin datos usa `role="alert"` (un `Notice` de error).
 - Un cambio de `status` no mueve el foco. Tras «reintentar», el foco pasa al panel (`tabIndex={-1}`, con el anillo de `color-accent-ink`) en vez de caer a la página, salvo que quien reintentó ya esté en otro control. Un segundo «reintentar» no llama otra vez a `onRetry` hasta que cambian `status` o `error`.
-- No carga datos ni descarta respuestas tardías: muestra el `status` que recibe.
+- No carga datos ni descarta respuestas tardías: muestra el `status` que recibe (para eso está `usePanelData`).
+- `announce={false}` (L-17): la región de estado no es viva y el error sin datos no es una alerta; es para una pantalla con varios paneles y un solo `DashboardStatus`.
+
+## ✅ Dashboard compuesto (L-17)
+
+- **Origen**: ninguno; el Design System no cubre composición de pantallas. Es una receta con cuatro piezas: `usePanelData`, `DashboardStatus`, `DashboardGrid` y `DashboardCell`, más `announce` en `DataPanel`. La story `Finanzas/Dashboard` la compone con `Metric`, `DataPanel`, `TrendChart`, `BarChart`, `MovementsTable` y el selector de periodo.
+- **`usePanelData(key, load)`**: `load(key, signal)` devuelve la promesa; devuelve `{ status, data, dataKey, error, retry }`.
+  - El estado se deriva en el render en que cambia `key`: no existe un fotograma con la clave nueva, `ready` y los datos de la anterior.
+  - Una respuesta de una clave que ya no es la actual, buena o mala, se descarta, y su señal se aborta al cambiar de clave y al desmontar.
+  - `data` y `dataKey` sobreviven a un error: son los datos anteriores, y `dataKey` dice de qué periodo (para escribir «datos de 30 días» y no «datos anteriores» a secas).
+  - `retry` pide la clave actual una sola vez por error. No cachea: volver a un periodo lo vuelve a pedir.
+  - Un panel que no depende del periodo usa una clave fija (`undefined`) y no se vuelve a pedir ni a pintar al cambiarlo.
+- **`DataPanel announce={false}`**: la región de estado deja de ser viva (`aria-live="off"`) y el error sin datos pierde el rol `alert`; el texto sigue a la vista. Por omisión es `true`, igual que en L-15.
+- **`DashboardStatus`**: `{ panels: { title, status }[], labels?, settleMs = 250 }`. Dos regiones ocultas y montadas desde el principio, una `status` y una `alert`.
+  - Cargar se anuncia una vez («cargando 4 paneles») y no se repite mientras quede alguno cargando; que los demás terminen no reescribe el texto.
+  - Los errores de una misma tanda se juntan en un aviso, en el orden en que se ven («no se pudieron cargar: saldo, movimientos»), sin esperar a los paneles lentos.
+  - Terminar bien no anuncia nada (entrada 42). Los títulos repetidos se conservan.
+- **`DashboardGrid` y `DashboardCell`**: rejilla `repeat(auto-fit, minmax(min(100%, 18rem), 1fr))`, de 3 columnas a 1024 px, 2 a 768 y 1 a 375. `wide` ocupa la fila. El orden del DOM es el orden visual (sin `order`, `dense` ni posiciones), así que Tab recorre la pantalla como se ve. La rejilla no pone `main`, `h1` ni nombre: son de la página.
+- **Estructura de la página**: un `main` con un `h1`, y cada `DataPanel` es un `h2`. Sin saltos de nivel, y cada región, grupo, figura e imagen con un nombre único (dos gráficas con el mismo título serían dos regiones con el mismo nombre).
+- **Monedas**: cada panel lleva una moneda y la dice en su título; la librería no suma ni convierte. `Amount` no tiene `currencyDisplay: 'code'`, así que dos monedas con el mismo símbolo en un `locale` serían ambiguas.
+- **Foco**: ningún panel mueve el foco por sí solo; los datos nuevos reemplazan a los viejos sin remontar la tabla, así que el filtro conserva el foco y lo escrito.
+- **Rendimiento**: cada panel es `memo` y recibe datos de identidad estable; cambiar el periodo repinta solo los paneles que dependen de él. No hay `useMemo` dentro de las piezas de L-14 a L-16.
 
 ## Tooltip (pendiente)
 

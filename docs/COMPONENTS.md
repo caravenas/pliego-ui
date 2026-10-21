@@ -156,7 +156,7 @@ interface SpecStepProps {
 - **Origen**: ninguno; el Design System no cubre cifras monetarias.
 - **API**: `{ value, currency, locale?, flow?, creditLabel = 'abono', debitLabel = 'cargo', unknownLabel = 'sin dato' }`.
 - El valor va en unidades mayores y la moneda es obligatoria; sin `locale` se usa el del entorno. Formatea con `Intl`; un valor que no es un número finito se escribe «sin dato» y una moneda o un idioma inválidos no lanzan.
-- Mono con `tabular-nums`. Un negativo lleva el signo `−` en el texto. Con `flow`, un abono y un cargo llevan además su palabra y su color (`color-success-foreground`, azul desde L-15, y `color-danger-foreground`): el color refuerza, nunca sustituye.
+- Mono con `tabular-nums`. Un negativo lleva el signo `−` en el texto. Con `flow`, un abono y un cargo llevan además su palabra y su color (`color-success-foreground`, cian desde 2026-10-21, y `color-debit-foreground`, magenta; el rojo de `color-danger-foreground` queda para los errores): el color refuerza, nunca sustituye.
 
 ## ✅ MovementsTable (L-14)
 

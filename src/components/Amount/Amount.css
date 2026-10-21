@@ -15,7 +15,7 @@
 }
 
 .pui-amount--debit {
-  color: var(--color-danger-foreground);
+  color: var(--color-debit-foreground);
 }
 
 .pui-amount__word {

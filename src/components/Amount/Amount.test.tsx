@@ -76,8 +76,8 @@ describe('CSS de Amount', () => {
   it('usa tabular-nums, el color sale de los tokens de estado y nunca de color-accent', () => {
     expect(code).toMatch(/font-variant-numeric:\s*tabular-nums/);
     expect(code).toMatch(/--color-success-foreground/);
-    expect(code).toMatch(/--color-danger-foreground/);
-    expect(code).not.toMatch(/color-accent/);
+    expect(code).toMatch(/--color-debit-foreground/);
+    expect(code).not.toMatch(/color-danger-foreground|color-accent/);
   });
 });
 
@@ -95,7 +95,7 @@ describe('contraste de los colores de estado', () => {
     return (hi + 0.05) / (lo + 0.05);
   };
 
-  it.each(['color-success-foreground', 'color-danger-foreground'])('%s pasa 4,5:1 sobre el papel y sobre la página', (name) => {
+  it.each(['color-success-foreground', 'color-debit-foreground'])('%s pasa 4,5:1 sobre el papel y sobre la página', (name) => {
     expect(ratio(colors[name], colors['color-bg-secondary'])).toBeGreaterThanOrEqual(4.5);
     expect(ratio(colors[name], colors['color-bg-primary'])).toBeGreaterThanOrEqual(4.5);
   });
@@ -109,10 +109,16 @@ describe('contraste de los colores de estado', () => {
     return (h * 60 + 360) % 360;
   };
 
-  it('un abono es azul y no se confunde con el cian del foco y los enlaces', () => {
+  it('un abono es cian y un cargo es magenta', () => {
     const credit = hue(colors['color-success-foreground']);
-    expect(credit).toBeGreaterThanOrEqual(200);
-    expect(credit).toBeLessThanOrEqual(250);
-    expect(Math.abs(credit - hue(colors['color-accent-ink']))).toBeGreaterThanOrEqual(15);
+    expect(credit).toBeGreaterThanOrEqual(170);
+    expect(credit).toBeLessThanOrEqual(210);
+    const debit = hue(colors['color-debit-foreground']);
+    expect(debit).toBeGreaterThanOrEqual(290);
+    expect(debit).toBeLessThanOrEqual(330);
+  });
+
+  it('el cargo ya no usa el rojo de los errores', () => {
+    expect(colors['color-debit-foreground']).not.toBe(colors['color-danger-foreground']);
   });
 });

@@ -162,13 +162,27 @@ interface SpecStepProps {
 
 - **API**: `{ caption, movements: { id, date, description, amount }[], currency, locale?, formatDate?, labels? }`.
 - `<table>` con `caption`, cabeceras con `scope` y el concepto como cabecera de fila. El contenedor es una región con nombre y enfocable, porque la tabla se desplaza de lado en pantallas estrechas. Importes a la derecha, con `Amount flow`.
-- Sin movimientos dice «sin movimientos». Solo lectura: sin orden, filtros ni paginación.
+- Sin movimientos dice «sin movimientos». Por omisión es solo lectura; el orden y el filtro son opt-in (ver abajo). Sin paginación ni selección.
+- **Orden** (`sortable`, L-16): cada cabecera lleva un `<button>` cuyo nombre es el rótulo de la columna, y `aria-sort` en el `<th>`. El clic pasa por ascendente, descendente y el orden original. La flecha es forma (`↕ ↑ ↓`), `aria-sort` lo dice en palabras. Un valor desconocido (importe ausente o no finito, fecha vacía o inexistente como `2026-02-31`, concepto vacío) va siempre al final, en las dos direcciones; los empates conservan el orden original también en descendente; el concepto se compara con `Intl.Collator` del `locale`. `defaultSort` y `onSortChange` (`null` es el orden original).
+- **Filtro** (`filterable`, L-16): un campo con la etiqueta visible «filtrar» sobre la tabla; coincide con el concepto o la fecha tal como se escribe, sin distinguir mayúsculas ni tildes y tomando el texto literalmente. Cero resultados dice «ningún movimiento coincide con «…»», distinto de «sin movimientos».
+- **Anuncios**: una región `role="status"` oculta, montada desde el principio. El orden se anuncia al momento («ordenado por importe, de mayor a menor»); el conteo («3 de 12 movimientos») se ve al instante junto al campo y se anuncia 500 ms después de la última tecla.
+- Sin `sortable` ni `filterable` el DOM es el de L-14. Los estilos de orden y filtro están en `MovementsTable.controls.css`.
 
 ## ✅ TrendChart (L-14)
 
 - **API**: `{ title, points: { label, value }[], currency, locale?, labels? }`.
 - Línea en SVG propio, de tinta, con `role="img"` y un nombre que incluye el rango. `color-accent` solo rellena el último punto. Un valor ausente deja un hueco; un solo punto se dibuja sin línea; sin datos dice «sin datos para graficar».
 - Los mismos valores van en una tabla visible dentro de un `<details>` abierto: es lo que lee quien no ve el dibujo.
+
+## ✅ BarChart (L-16)
+
+- **Origen**: ninguno; el Design System no cubre series de datos ni leyendas.
+- **API**: `{ title, categories: string[], series: { name, values: (number | null | undefined)[] }[], currency, locale?, labels? }`. `values[i]` pertenece a `categories[i]`.
+- Barras agrupadas en SVG propio, de tinta, con `role="img"` y un nombre que incluye el título, las series y el rango. La escala siempre incluye el 0. Un valor desconocido no dibuja barra; un 0 deja una marca en la base (un `rect` de alto cero no se pinta).
+- **Las series se distinguen sin color**: nombre escrito en la leyenda, posición fija en el grupo y un relleno de tinta propio (macizo, rayas, puntos, trama cruzada). Barra y muestra de la leyenda comparten el mismo patrón SVG, y el contorno de 2 px de tinta da el contraste con el papel. No hay tonos ni tokens nuevos.
+- La leyenda solo aparece con dos o más series. Se dibujan como máximo cuatro; con más se escribe «se muestran 4 de N series; las demás están en la tabla» y la tabla las conserva todas.
+- Un nombre repetido se desambigua (« (2)»), uno vacío se escribe «sin nombre». Una serie corta deja «sin dato»; los valores que sobran se ignoran.
+- Las etiquetas del eje son HTML bajo el SVG, con `aria-hidden`. La tabla de valores (categorías por series) va visible en un `<details>` abierto: es lo que lee quien no ve el dibujo.
 
 ## ✅ Metric (L-15)
 

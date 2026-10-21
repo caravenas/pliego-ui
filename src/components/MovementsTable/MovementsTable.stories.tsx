@@ -39,3 +39,30 @@ export const UnknownAmount: Story = {
     ],
   },
 };
+
+const extract = [
+  { id: '1', date: '2026-10-01', description: 'sueldo', amount: 1500 },
+  { id: '2', date: '2026-10-03', description: 'Arriendo', amount: -600.25 },
+  { id: '3', date: '2026-10-05', description: 'café', amount: -3.5 },
+  { id: '4', date: '2026-10-07', description: 'supermercado', amount: -84.1 },
+  { id: '5', date: '2026-10-09', description: 'transferencia pendiente', amount: undefined },
+  { id: '6', date: '2026-10-12', description: 'reembolso', amount: 32 },
+  { id: '7', date: '', description: 'ajuste sin fecha', amount: -5 },
+];
+
+export const Sortable: Story = { args: { movements: extract, sortable: true, defaultSort: { column: 'amount', direction: 'ascending' } } };
+
+export const Filterable: Story = { args: { movements: extract, filterable: true } };
+
+export const SortableAndFilterable: Story = { args: { movements: extract, sortable: true, filterable: true } };
+
+export const NoMatches: Story = {
+  args: { movements: extract, filterable: true },
+  play: async ({ canvasElement }) => {
+    const input = canvasElement.querySelector('input');
+    if (!input) return;
+    // El filtro es controlado por React: se escribe con el setter nativo para que onChange se entere.
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, 'zzz');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  },
+};

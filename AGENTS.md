@@ -48,7 +48,7 @@ El código y los documentos de PliegoStack son procedencia: sirven para copiar v
 
 ## Cómo se escribe un incremento
 
-- Un incremento nuevo parte de un brief en `docs/PLAN.md`: Objetivo, Alcance, No objetivos, Aceptación numerada y Rollback. El formato está en `~/.agents/docs/formato-de-brief.md`.
+- Un incremento nuevo parte de un brief en `docs/PLAN.md`: Objetivo, Alcance, No objetivos, Aceptación numerada y Rollback. El formato está en `~/.agents/references/formato-de-brief.md`.
 - Compruébalo con `node ~/.agents/scripts/task-brief.mjs check docs/PLAN.md --heading "L-2"`. Cada criterio de Aceptación dice cómo se comprueba: un comando, un test, una prueba o una revisión manual.
 - Lo propone el agente y lo aprueba Chris antes de construir. Nadie construye desde un brief sin aprobar.
 - Cuando Chris aprueba el brief, y **antes de escribir código**, crea el checkpoint del incremento. Es el estado de la tarea, vive fuera del repositorio y lo crea este comando, no se crea solo: `checkpoint new --repo ~/Projects/pliego-ui --brief docs/PLAN.md --heading "<id>" --playbook feature-development --mode lean "<id>: <título>"`. Imprime la ruta; guárdala.

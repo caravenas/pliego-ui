@@ -45,7 +45,7 @@ function WithPeriodDemo() {
   const [shown, setShown] = useState<Period>('30d');
   const [status, setStatus] = useState<DataPanelStatus>('ready');
   const failed = useRef(false);
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
 
   const load = (next: Period) => {

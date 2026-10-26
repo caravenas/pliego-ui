@@ -48,6 +48,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-15 | `Metric`, `DataPanel` y el selector de periodo | hecho, con la revisión manual de Chris pendiente | ver `git log` (`feat: add Metric and DataPanel`) |
 | L-16 | `BarChart` y orden y filtro de `MovementsTable` | hecho, con la revisión manual de Chris pendiente | ver `git log` (`feat: add BarChart and sort and filter for MovementsTable`) |
 | L-17 | El dashboard de finanzas compuesto | hecho, con la revisión manual de Chris pendiente | ver `git log` (`feat: add the composed finance dashboard`) |
+| L-18 | Matriz React 18/19 en CI | en curso (brief aprobado el 2026-10-25) | |
 | L-13 | Re-sincronizar el Design System desde la librería | hecho (publicado en el artifact el 2026-10-16, versión 14) | `50d65e0` |
 
 Orden razonado: primero la red de seguridad (CI), luego los primitivos de formulario que todo lo demás usa (`Field`), luego los patrones propios en el orden en que aparecen en la ficha técnica, y solo entonces publicar y migrar. Radix entra cuando haga falta, no antes.
@@ -833,6 +834,42 @@ Ninguna impide empezar. Todas traen la propuesta que se construye si Chris no di
 
 **Pendiente (incrementos siguientes, sin construir).**
 Nada del dashboard de finanzas. Quedan, si Chris los pide: `goodWhen`, `readyLabel`, nivel de encabezado de `DataPanel`, una paleta de matices para series, orden y filtro controlados, barras apiladas y `currencyDisplay` en `Amount`.
+
+## L-18 — Matriz React 18/19 en CI
+
+`@caravenas/pliego-ui@0.1.0` está publicado con `peerDependencies` que admite React 19, pero los tests corren solo en 18 (decisión 6). Este incremento comprueba esa promesa.
+Sin origen en PliegoStack ni en el Design System: es infraestructura.
+
+**Objetivo.**
+Que lo que `peerDependencies` promete (React 18 y 19) esté comprobado en cada push, y que cualquier consumidor en 19 pueda instalar la librería sin sorpresas.
+
+**Alcance.**
+- Reproducir primero lo que rompe: instalar React 19 sin guardar y correr tests, typecheck y las pruebas de navegador. Anotar los fallos antes de arreglar nada.
+- Una matriz `react: [18, 19]` en `.github/workflows/ci.yml` para typecheck, tests y axe. Instala React sin tocar `package.json` ni el lockfile.
+- Arreglar lo que falle en 19 con el cambio mínimo (se esperan `act`, tipos de `ref` y `forwardRef`).
+- Cerrar la decisión 6 y actualizar la tabla de estado y «Estado actual».
+
+**No objetivos.**
+- Subir Vite, Storybook o TypeScript (decisión 5).
+- Cambiar el React por defecto de las `devDependencies`.
+- Componentes nuevos, capturas en CI, tema oscuro y dependencias nuevas.
+
+**Aceptación.**
+1. Con React 19 instalado sin guardar, `npm test` y `npm run typecheck` terminan en 0. Antes del arreglo queda registrado qué falló.
+2. Con React 19, `npm run build-storybook`, `npm run test:a11y` y `npm run test:touch` terminan en 0 sobre las 89 stories.
+3. `ci.yml` tiene la matriz 18/19 y ambas celdas pasan en una ejecución real (`gh run view`).
+4. Un paso de la matriz comprueba que el React instalado es el de la celda (`node -e "console.log(require('react').version)"`), para que una celda 19 no corra en 18 sin avisar.
+5. `package.json` no gana dependencias, `peerDependencies` queda igual y el lockfile no cambia (`git diff --stat package.json package-lock.json` no imprime nada).
+6. Si cambia código publicable hay un changeset `patch`. Si un arreglo cambia la API pública, se para y se pregunta a Chris.
+7. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0 en la rama final.
+
+**Rollback.** Revertir el único commit. La matriz es solo de CI y no afecta a lo publicado.
+
+**Decisiones ya tomadas.**
+Chris aprobó el brief el 2026-10-25.
+
+**Preguntas abiertas.**
+Ninguna impide empezar.
 
 ---
 

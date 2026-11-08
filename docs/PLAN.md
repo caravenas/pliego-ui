@@ -50,6 +50,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-16 | `BarChart` y orden y filtro de `MovementsTable` | hecho, con la revisión manual de Chris pendiente | ver `git log` (`feat: add BarChart and sort and filter for MovementsTable`) |
 | L-17 | El dashboard de finanzas compuesto | hecho, con la revisión manual de Chris pendiente | ver `git log` (`feat: add the composed finance dashboard`) |
 | L-18 | Matriz React 18/19 en CI | hecho (CI en verde en las dos celdas, PR #3, ejecución 42150949599) | `f2ae025` |
+| L-19 | La verificación de `pliego-ui` como skill | propuesto (brief sin aprobar) | |
 | L-13 | Re-sincronizar el Design System desde la librería | hecho (publicado en el artifact el 2026-10-16, versión 14) | `50d65e0` |
 
 Orden razonado: primero la red de seguridad (CI), luego los primitivos de formulario que todo lo demás usa (`Field`), luego los patrones propios en el orden en que aparecen en la ficha técnica, y solo entonces publicar y migrar. Radix entra cuando haga falta, no antes.
@@ -871,6 +872,66 @@ Chris aprobó el brief el 2026-10-25.
 
 **Preguntas abiertas.**
 Ninguna impide empezar.
+
+## L-19 — La verificación de `pliego-ui` como skill
+
+Hoy la verificación visual y de accesibilidad de un cambio la hace una persona mirando Storybook, o corre entera (96 stories) sin saber qué toca el diff.
+Este incremento la vuelve un procedimiento que un agente ejecuta sobre lo que cambió y que deja evidencia que una persona puede abrir después.
+Es la etapa A de `~/.agents/plans/plan-pr-autonomos.md`; sin origen en PliegoStack ni en el Design System: es infraestructura.
+
+**Objetivo.**
+Que un agente pueda verificar en un navegador real las stories que un cambio toca y dejar, para cada una, capturas a 375, 768 y 1024 px, el recorrido con teclado y el estado accesible, en una ruta que sobrevive a la limpieza.
+
+**Alcance.**
+- Una skill del proyecto, `verify-pliego-ui`, con su `SKILL.md` y un script que la ejecuta. Vive en `.agents/skills/verify-pliego-ui/`, la carpeta `.agents` del propio repositorio, y Claude Code la lee desde ahí por un enlace relativo `.claude/skills/verify-pliego-ui` → `../../.agents/skills/verify-pliego-ui`, que se commitea (Chris, 2026-11-09).
+- Lanzar: `npm run build-storybook` y `scripts/serve-static.mjs storybook-static` en el puerto 6007, el mismo que usa `playwright.config.ts`. Es lo que las pruebas de navegador ya usan; no se lanza `storybook dev`.
+- Comprobar que está sano antes de manejar: el puerto estaba libre, `/index.json` responde con stories, y cada story elegida abre con `openStory` sin la pantalla de error de Storybook. Si algo falla, la skill termina con error y lo dice; nunca deja un informe en verde.
+- Elegir las stories del diff: archivos cambiados contra la base (`git diff --name-only`) cruzados con `importPath` y `componentPath` de `storybook-static/index.json`. Un cambio en `src/components/<X>/` elige las stories de `<X>`. Un cambio en tokens, `src/styles/`, `src/hooks/`, `src/utils/`, `.storybook/` o `e2e/stories.ts` elige todas, y el informe dice por qué.
+- Manejar y guardar como evidencia, por story: una captura a 375, 768 y 1024 px de ancho; el recorrido con Tab (rol, nombre accesible y si el foco se ve en cada parada, con tope de paradas y aviso de trampa de foco); el estado accesible como instantánea de `ariaSnapshot()`.
+- Correr los specs que ya existen, `e2e/a11y.spec.ts` y `e2e/touch-targets.spec.ts`, filtrados a esas stories con `--grep`, y guardar su resultado JSON junto al resto. No se reescribe axe ni la medición de áreas.
+- Reutilizar `listStories` y `openStory` de `e2e/stories.ts`. Único cambio permitido ahí: que `IndexEntry` exponga `importPath`, sin cambiar lo que los specs reciben hoy.
+- Limpiar: parar el servidor que la skill lanzó, borrar lo temporal y dejar la evidencia en `.verification/<sha-corto>/` (añadida a `.gitignore`), con un `report.json` por ejecución: SHA, base, stories elegidas, por qué, qué se comprobó y qué falló.
+- Un mapa de funcionalidades dentro de la skill: cada funcionalidad con los títulos de sus stories y, para las que tienen interacción propia, la tecla o gesto que vale la pena recorrer (por ejemplo, flechas en `SegmentedControl`, orden y filtro en `MovementsTable`, abrir y cerrar `Drawer`).
+- Actualizar la tabla de estado y «Estado actual» al cerrar.
+
+**No objetivos.**
+- Comparar las capturas nuevas con una referencia: eso es `npm run test:visual` y sus 96 referencias de macOS, que no se tocan. La evidencia es para mirarla, no para decidir sola.
+- Cambiar `playwright.config.ts`, `e2e/a11y.spec.ts`, `e2e/touch-targets.spec.ts` o `e2e/visual.spec.ts`, o los workflows de CI.
+- Dependencias nuevas (Playwright, `@axe-core/playwright` y `tsx` ya están) y componentes nuevos.
+- El veredicto del PR, la plantilla del PR y publicar nada: son las etapas B y C del plan de PR autónomos.
+- Verificar el Design System publicado en claude.ai (`ds:check` ya lo hace) y probar en otro navegador o plataforma.
+
+**Aceptación.**
+1. Un test de Vitest sobre la función que cruza archivos cambiados con `index.json` comprueba que `src/components/Amount/Amount.tsx` elige solo las stories de `Finanzas/Amount`, que `src/components/Amount/Amount.test.tsx` también, que `src/styles/base.css` elige las 96 con la razón escrita, y que un archivo sin story (`README.md`) no elige ninguna y lo dice.
+2. Sin lanzar nada, un comando de la skill con el puerto 6007 ocupado por otro proceso termina distinto de 0 y nombra el puerto; con `storybook-static/index.json` ausente, termina distinto de 0 y dice que falta compilar. En los dos casos `.verification/` no gana ningún `report.json`. Se comprueba ejecutando ambos casos.
+3. Con una story rota plantada de forma temporal (no se commitea), la comprobación de salud falla nombrando el id de esa story, y el informe no queda en verde. Se comprueba con una prueba manual de ese caso: se planta la story, se corre el comando de la skill y se borra la story.
+4. Sobre una funcionalidad del mapa, para cada story elegida existen tres PNG cuyos anchos, leídos con un comando (`file` o `sips`), son 375, 768 y 1024 px, un `keyboard.json` con al menos una parada y un `aria.yml` no vacío. Se comprueba con un comando que lista y mide los archivos.
+5. El resultado JSON de `a11y.spec.ts` y `touch-targets.spec.ts` filtrados a esas stories queda en la evidencia con cero fallos, y `git diff --stat e2e/a11y.spec.ts e2e/touch-targets.spec.ts e2e/visual.spec.ts playwright.config.ts` no imprime nada.
+6. Un test comprueba el mapa de funcionalidades contra `index.json`: todo título del mapa existe y toda story del índice pertenece a una funcionalidad, para que una story nueva no quede sin mapa sin que algo falle.
+7. Ejecución de punta a punta sobre `Finanzas/MovementsTable` (la que tiene orden y filtro): el comando de la skill termina en 0; `find .verification -type f` lista la evidencia del criterio 4 antes de la limpieza y la misma lista después, `lsof -i :6007` no imprime nada, `git status --porcelain` no muestra archivos rastreados cambiados y no queda nada en un directorio temporal que la skill haya creado. La salida de los dos `find` se pega en el cierre del incremento.
+8. Revisión manual de Chris, que el agente deja sin marcar: abre una captura de cada ancho y el `keyboard.json` de `MovementsTable` y confirma que sirven para juzgar el cambio sin abrir Storybook.
+9. `SKILL.md` dice el comando, la ruta de la evidencia, que reconstruye Storybook en cada ejecución, y lo que la evidencia no demuestra (no compara con referencias, no sustituye a `npm run test:visual`, 640 px de las pruebas frente a 375, 768 y 1024 de la skill). Se comprueba por revisión manual de ese texto.
+10. `package.json` y `package-lock.json` no cambian (`git diff --stat package.json package-lock.json` no imprime nada) y `npm test`, `npm run typecheck`, `npm run build`, `npm run build-storybook`, `npm run test:a11y` y `npm run test:touch` terminan en 0 en la rama final.
+11. `.claude/skills/verify-pliego-ui` es un enlace relativo a `../../.agents/skills/verify-pliego-ui`: `readlink .claude/skills/verify-pliego-ui` lo muestra, `test -f .claude/skills/verify-pliego-ui/SKILL.md` termina en 0 y `git ls-files .claude .agents/skills` lista ambos. Que una sesión nueva de Claude Code en el repositorio muestre la skill en su lista es una comprobación manual de Chris, que el agente deja sin marcar.
+
+**Rollback.** Borrar la carpeta de la skill y su enlace en `.claude/skills/`, la línea de `.gitignore` y revertir el cambio aditivo de `e2e/stories.ts`: nada más depende de ella. La carpeta `.verification/` es local y se puede borrar.
+
+**Decisiones propuestas** (las confirma Chris al aprobar).
+- Lo que se maneja es el Storybook compilado, no `storybook dev`: es lo que los specs y la CI ya usan, y el compilado es lo que se publica.
+- Se reconstruye en cada ejecución. Es más lento (el build) pero evita verificar un `storybook-static` viejo, que es la forma más fácil de dar evidencia de otro código.
+- La evidencia se guarda por SHA, para que la etapa B del plan de PR autónomos pueda exigirla sobre el mismo commit.
+- La skill vive en el `.agents` del repositorio y se expone a Claude con un enlace: la carpeta es la fuente y cada CLI que la descubra lee de ahí.
+- Los specs de axe y de áreas se reutilizan filtrados, no se duplican; la skill añade solo lo que no existe: capturas a tres anchos, recorrido con teclado y estado accesible.
+
+**Preguntas abiertas.**
+Ninguna bloquea el brief.
+1. Retención de `.verification/`: propuesta, ninguna en este incremento; se borra a mano y se revisa tras la primera ejecución real, cuando se sepa cuánto pesa una carpeta por SHA.
+
+**Resueltas (Chris, 2026-11-09).**
+- La skill vive en `.agents/skills/verify-pliego-ui/` y Claude la lee por un enlace desde `.claude/skills/`.
+- «Lo que el diff toca» se calcula contra `origin/main...HEAD`, con `--base` para cambiarla.
+- El mapa de funcionalidades se escribe a mano.
+- Todo sale de `main`: el cierre de L-18 se integra primero (`docs/l-18-close`) y la rama de L-19 se corta sobre `origin/main` con ese cierre; el PR de L-19 no arrastra commits de L-18.
 
 ---
 

@@ -15,7 +15,14 @@ permissions:
 
 jobs:
   verify:
+    name: verify (React ${{ matrix.react }})
     runs-on: ubuntu-latest
+    # peerDependencies admite React 18 y 19: cada versión se comprueba entera, y un
+    # fallo en una no cancela la otra para ver las dos a la vez.
+    strategy:
+      fail-fast: false
+      matrix:
+        react: [18, 19]
     steps:
       - uses: actions/checkout@v4
 
@@ -25,6 +32,25 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      # Con --no-save, package.json y el lockfile no cambian: la matriz solo toca lo
+      # que hay en node_modules, no lo que se publica.
+      - name: Instalar React ${{ matrix.react }}
+        run: npm install --no-save react@${{ matrix.react }} react-dom@${{ matrix.react }} @types/react@${{ matrix.react }} @types/react-dom@${{ matrix.react }}
+
+      # Una celda 19 que corriera en 18 pasaría en verde sin comprobar nada.
+      - name: Comprobar la versión de React instalada
+        run: |
+          node -e "
+            for (const name of ['react', 'react-dom']) {
+              const { version } = require(name + '/package.json');
+              console.log(name, version);
+              if (!version.startsWith('${{ matrix.react }}.')) {
+                console.error(name + ' ' + version + ' no es de la celda ${{ matrix.react }}');
+                process.exit(1);
+              }
+            }
+          "
 
       # Los tokens se regeneran antes de cada comando (scripts pre*), pero
       # typecheck y test dependen de ellos: si fallan, el error es de tokens.
@@ -43,6 +69,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-report
+          name: playwright-report-react-${{ matrix.react }}
           path: playwright-report
           retention-days: 7

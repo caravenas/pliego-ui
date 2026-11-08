@@ -186,6 +186,74 @@ describe('SegmentedControl · deshabilitados', () => {
   });
 });
 
+describe('SegmentedControl · casos de un selector de periodo', () => {
+  const periods: SegmentedOption<string>[] = [
+    { value: '7d', label: '7 días' },
+    { value: '30d', label: '30 días' },
+    { value: '12m', label: '12 meses' },
+  ];
+
+  it('sin opciones no pinta nada y no lanza', () => {
+    const { container } = render(<SegmentedControl kind="options" label="Periodo" value="30d" options={[]} onChange={() => {}} />);
+    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole('radiogroup')).toBeNull();
+  });
+
+  it('con una sola opción pinta un segmento elegido que se alcanza con Tab', async () => {
+    const user = userEvent.setup();
+    render(<SegmentedControl kind="options" label="Periodo" value="7d" options={[periods[0]]} onChange={() => {}} />);
+    await user.tab();
+    expect(screen.getByRole('radio', { name: '7 días' })).toHaveFocus();
+    expect(screen.getByRole('radio', { name: '7 días' })).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('con valores repetidos pinta un segmento por valor, el primero, y avisa en consola', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <SegmentedControl
+        kind="options"
+        label="Periodo"
+        value="7d"
+        options={[...periods, { value: '7d', label: 'semana' }]}
+        onChange={onChange}
+      />,
+    );
+    expect(screen.getAllByRole('radio').map((radio) => radio.textContent)).toEqual(['7 días', '30 días', '12 meses']);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('7d'));
+    // Sin claves repetidas React no se queja, y las flechas recorren cada valor una vez.
+    expect(error).not.toHaveBeenCalled();
+    await user.tab();
+    await user.keyboard('{End}');
+    expect(screen.getByRole('radio', { name: '12 meses' })).toHaveFocus();
+    expect(onChange).toHaveBeenLastCalledWith('12m');
+    warn.mockRestore();
+    error.mockRestore();
+  });
+
+  it('si el valor elegido ya no existe no finge una selección ni la cambia', () => {
+    const onChange = vi.fn();
+    render(<SegmentedControl kind="options" label="Periodo" value="año" options={periods} onChange={onChange} />);
+    expect(screen.getAllByRole('radio').map((radio) => radio.getAttribute('aria-checked'))).toEqual(['false', 'false', 'false']);
+    expect(screen.getAllByRole('radio').map((radio) => radio.getAttribute('tabindex'))).toEqual(['0', '-1', '-1']);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('si el valor cambia desde fuera con el foco dentro, el foco se queda donde estaba', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const { rerender } = render(<SegmentedControl kind="options" label="Periodo" value="7d" options={periods} onChange={onChange} />);
+    await user.tab();
+    expect(screen.getByRole('radio', { name: '7 días' })).toHaveFocus();
+    rerender(<SegmentedControl kind="options" label="Periodo" value="12m" options={periods} onChange={onChange} />);
+    expect(screen.getByRole('radio', { name: '7 días' })).toHaveFocus();
+    expect(screen.getByRole('radio', { name: '12 meses' })).toHaveAttribute('aria-checked', 'true');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
 describe('CSS de SegmentedControl', () => {
   const css = readFileSync(resolve(__dirname, 'SegmentedControl.css'), 'utf8');
   const code = css.replace(/\/\*[\s\S]*?\*\//g, '');

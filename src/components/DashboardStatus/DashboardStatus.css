@@ -1,0 +1,15 @@
+/*
+ * Visualmente ocultas pero en el árbol: una región viva que aparece con su
+ * texto no siempre se lee, así que existen desde el primer render. No se usa
+ * display: none, que las sacaría del árbol accesible.
+ */
+.pui-dashboard-status__region {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

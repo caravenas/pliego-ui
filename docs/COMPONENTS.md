@@ -72,6 +72,8 @@ interface SegmentedControlProps<V extends string> {
 - `tabs`: `role="tablist"`, un solo punto de tabulación, flechas izquierda y derecha con vuelta, Inicio y Fin; la flecha selecciona al mover. No responde a arriba y abajo. No pinta los paneles.
 - `options`: `role="radiogroup"` con `role="radio"` y `aria-checked`, con el mismo teclado y además arriba y abajo, como un radiogroup nativo.
 - `id` opcional: da a cada segmento el id `${id}-${value}`. Los segmentos `disabled` se saltan al navegar.
+- Sin opciones no pinta nada. Con valores repetidos pinta la primera aparición y avisa en consola. Si `value` no está entre las opciones, ninguno se marca elegido y el componente no lo cambia por su cuenta.
+- **Selector de periodo** (L-15): es un `SegmentedControl` con `kind="options"`, no un componente aparte. El cambio de periodo lo anuncia el `DataPanel` que recarga, no el selector.
 
 ## OptionField / OptionCard (L-4)
 
@@ -154,19 +156,72 @@ interface SpecStepProps {
 - **Origen**: ninguno; el Design System no cubre cifras monetarias.
 - **API**: `{ value, currency, locale?, flow?, creditLabel = 'abono', debitLabel = 'cargo', unknownLabel = 'sin dato' }`.
 - El valor va en unidades mayores y la moneda es obligatoria; sin `locale` se usa el del entorno. Formatea con `Intl`; un valor que no es un número finito se escribe «sin dato» y una moneda o un idioma inválidos no lanzan.
-- Mono con `tabular-nums`. Un negativo lleva el signo `−` en el texto. Con `flow`, un abono y un cargo llevan además su palabra y su color (`color-success-foreground`, `color-danger-foreground`): el color refuerza, nunca sustituye.
+- Mono con `tabular-nums`. Un negativo lleva el signo `−` en el texto. Con `flow`, un abono y un cargo llevan además su palabra y su color (`color-success-foreground`, cian desde 2026-10-21, y `color-debit-foreground`, magenta; el rojo de `color-danger-foreground` queda para los errores): el color refuerza, nunca sustituye.
 
 ## ✅ MovementsTable (L-14)
 
 - **API**: `{ caption, movements: { id, date, description, amount }[], currency, locale?, formatDate?, labels? }`.
 - `<table>` con `caption`, cabeceras con `scope` y el concepto como cabecera de fila. El contenedor es una región con nombre y enfocable, porque la tabla se desplaza de lado en pantallas estrechas. Importes a la derecha, con `Amount flow`.
-- Sin movimientos dice «sin movimientos». Solo lectura: sin orden, filtros ni paginación.
+- Sin movimientos dice «sin movimientos». Por omisión es solo lectura; el orden y el filtro son opt-in (ver abajo). Sin paginación ni selección.
+- **Orden** (`sortable`, L-16): cada cabecera lleva un `<button>` cuyo nombre es el rótulo de la columna, y `aria-sort` en el `<th>`. El clic pasa por ascendente, descendente y el orden original. La flecha es forma (`↕ ↑ ↓`), `aria-sort` lo dice en palabras. Un valor desconocido (importe ausente o no finito, fecha vacía o inexistente como `2026-02-31`, concepto vacío) va siempre al final, en las dos direcciones; los empates conservan el orden original también en descendente; el concepto se compara con `Intl.Collator` del `locale`. `defaultSort` y `onSortChange` (`null` es el orden original).
+- **Filtro** (`filterable`, L-16): un campo con la etiqueta visible «filtrar» sobre la tabla; coincide con el concepto o la fecha tal como se escribe, sin distinguir mayúsculas ni tildes y tomando el texto literalmente. Cero resultados dice «ningún movimiento coincide con «…»», distinto de «sin movimientos».
+- **Anuncios**: una región `role="status"` oculta, montada desde el principio. El orden se anuncia al momento («ordenado por importe, de mayor a menor»); el conteo («3 de 12 movimientos») se ve al instante junto al campo y se anuncia 500 ms después de la última tecla.
+- Sin `sortable` ni `filterable` el DOM es el de L-14. Los estilos de orden y filtro están en `MovementsTable.controls.css`.
 
 ## ✅ TrendChart (L-14)
 
 - **API**: `{ title, points: { label, value }[], currency, locale?, labels? }`.
 - Línea en SVG propio, de tinta, con `role="img"` y un nombre que incluye el rango. `color-accent` solo rellena el último punto. Un valor ausente deja un hueco; un solo punto se dibuja sin línea; sin datos dice «sin datos para graficar».
 - Los mismos valores van en una tabla visible dentro de un `<details>` abierto: es lo que lee quien no ve el dibujo.
+
+## ✅ BarChart (L-16)
+
+- **Origen**: ninguno; el Design System no cubre series de datos ni leyendas.
+- **API**: `{ title, categories: string[], series: { name, values: (number | null | undefined)[] }[], currency, locale?, labels? }`. `values[i]` pertenece a `categories[i]`.
+- Barras agrupadas en SVG propio, de tinta, con `role="img"` y un nombre que incluye el título, las series y el rango. La escala siempre incluye el 0. Un valor desconocido no dibuja barra; un 0 deja una marca en la base (un `rect` de alto cero no se pinta).
+- **Las series se distinguen sin color**: nombre escrito en la leyenda, posición fija en el grupo y un relleno de tinta propio (macizo, rayas, puntos, trama cruzada). Barra y muestra de la leyenda comparten el mismo patrón SVG, y el contorno de 2 px de tinta da el contraste con el papel. No hay tonos ni tokens nuevos.
+- La leyenda solo aparece con dos o más series. Se dibujan como máximo cuatro; con más se escribe «se muestran 4 de N series; las demás están en la tabla» y la tabla las conserva todas.
+- Un nombre repetido se desambigua (« (2)»), uno vacío se escribe «sin nombre». Una serie corta deja «sin dato»; los valores que sobran se ignoran.
+- Las etiquetas del eje son HTML bajo el SVG, con `aria-hidden`. La tabla de valores (categorías por series) va visible en un `<details>` abierto: es lo que lee quien no ve el dibujo.
+
+## ✅ Metric (L-15)
+
+- **Origen**: ninguno; el Design System no cubre cifras clave.
+- **API**: `{ label, value, previous?, currency, locale?, comparison?, labels? }`. `labels`: `up` «sube», `down` «baja», `flat` «sin cambio», `noPrevious` «sin dato anterior», `noPercent` «sin porcentaje: el valor anterior es 0», `lessThan` «menos de».
+- Un grupo nombrado por su rótulo; la cifra va con `Amount` en el estilo `metric-value`, y la variación debajo, en `mono-note`: «sube $240.00 (24.0%) frente a septiembre».
+- La dirección sale de la diferencia redondeada a los decimales de la moneda, no del porcentaje: de −200 a −100 «sube», y el porcentaje es sobre el valor absoluto del anterior. Con el anterior en 0 no hay porcentaje y se dice por qué; un cambio real que redondea a 0,0 % se escribe «menos de 0,1 %».
+- La variación va en tinta, sin color: que suba es bueno en un saldo y malo en un gasto.
+- Sin caja: un filete superior de `color-border`.
+
+## ✅ DataPanel (L-15)
+
+- **Origen**: la tarjeta `Panel` del Design System (título sin caja).
+- **API**: `{ title, status: 'ready' | 'loading' | 'error', error?, onRetry?, retryLabel, loadingLabel, staleLabel, staleErrorLabel, loadErrorLabel, children? }`. El título es un `h2` y nombra la región.
+- Los datos anteriores no se ocultan ni se atenúan: siguen legibles, con una marca escrita («datos anteriores; cargando los nuevos», «no se pudieron actualizar; estos datos son anteriores») enlazada por `aria-describedby`, y con `aria-busy` mientras cargan. Sin datos, «cargando» se escribe sin animación.
+- Una región `role="status"` existe siempre y lleva la carga y las marcas. Solo el error sin datos usa `role="alert"` (un `Notice` de error).
+- Un cambio de `status` no mueve el foco. Tras «reintentar», el foco pasa al panel (`tabIndex={-1}`, con el anillo de `color-accent-ink`) en vez de caer a la página, salvo que quien reintentó ya esté en otro control. Un segundo «reintentar» no llama otra vez a `onRetry` hasta que cambian `status` o `error`.
+- No carga datos ni descarta respuestas tardías: muestra el `status` que recibe (para eso está `usePanelData`).
+- `announce={false}` (L-17): la región de estado no es viva y el error sin datos no es una alerta; es para una pantalla con varios paneles y un solo `DashboardStatus`.
+
+## ✅ Dashboard compuesto (L-17)
+
+- **Origen**: ninguno; el Design System no cubre composición de pantallas. Es una receta con cuatro piezas: `usePanelData`, `DashboardStatus`, `DashboardGrid` y `DashboardCell`, más `announce` en `DataPanel`. La story `Finanzas/Dashboard` la compone con `Metric`, `DataPanel`, `TrendChart`, `BarChart`, `MovementsTable` y el selector de periodo.
+- **`usePanelData(key, load)`**: `load(key, signal)` devuelve la promesa; devuelve `{ status, data, dataKey, error, retry }`.
+  - El estado se deriva en el render en que cambia `key`: no existe un fotograma con la clave nueva, `ready` y los datos de la anterior.
+  - Una respuesta de una clave que ya no es la actual, buena o mala, se descarta, y su señal se aborta al cambiar de clave y al desmontar.
+  - `data` y `dataKey` sobreviven a un error: son los datos anteriores, y `dataKey` dice de qué periodo (para escribir «datos de 30 días» y no «datos anteriores» a secas).
+  - `retry` pide la clave actual una sola vez por error. No cachea: volver a un periodo lo vuelve a pedir.
+  - Un panel que no depende del periodo usa una clave fija (`undefined`) y no se vuelve a pedir ni a pintar al cambiarlo.
+- **`DataPanel announce={false}`**: la región de estado deja de ser viva (`aria-live="off"`) y el error sin datos pierde el rol `alert`; el texto sigue a la vista. Por omisión es `true`, igual que en L-15.
+- **`DashboardStatus`**: `{ panels: { title, status }[], labels?, settleMs = 250 }`. Dos regiones ocultas y montadas desde el principio, una `status` y una `alert`.
+  - Cargar se anuncia una vez («cargando 4 paneles») y no se repite mientras quede alguno cargando; que los demás terminen no reescribe el texto.
+  - Los errores de una misma tanda se juntan en un aviso, en el orden en que se ven («no se pudieron cargar: saldo, movimientos»), sin esperar a los paneles lentos.
+  - Terminar bien no anuncia nada (entrada 42). Los títulos repetidos se conservan.
+- **`DashboardGrid` y `DashboardCell`**: rejilla `repeat(auto-fit, minmax(min(100%, 18rem), 1fr))`, de 3 columnas a 1024 px, 2 a 768 y 1 a 375. `wide` ocupa la fila. El orden del DOM es el orden visual (sin `order`, `dense` ni posiciones), así que Tab recorre la pantalla como se ve. La rejilla no pone `main`, `h1` ni nombre: son de la página.
+- **Estructura de la página**: un `main` con un `h1`, y cada `DataPanel` es un `h2`. Sin saltos de nivel, y cada región, grupo, figura e imagen con un nombre único (dos gráficas con el mismo título serían dos regiones con el mismo nombre).
+- **Monedas**: cada panel lleva una moneda y la dice en su título; la librería no suma ni convierte. `Amount` no tiene `currencyDisplay: 'code'`, así que dos monedas con el mismo símbolo en un `locale` serían ambiguas.
+- **Foco**: ningún panel mueve el foco por sí solo; los datos nuevos reemplazan a los viejos sin remontar la tabla, así que el filtro conserva el foco y lo escrito.
+- **Rendimiento**: cada panel es `memo` y recibe datos de identidad estable; cambiar el periodo repinta solo los paneles que dependen de él. No hay `useMemo` dentro de las piezas de L-14 a L-16.
 
 ## Tooltip (pendiente)
 

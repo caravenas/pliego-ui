@@ -24,6 +24,9 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 - L-13 cerrado (2026-10-16, `50d65e0`): `npm run ds:build` produce el árbol y `npm run ds:check` (33 pruebas) lo comprueba. Chris confirmó la publicación y se publicó en el artifact: 14 tarjetas vivas con `bundle.js` (`window.PliegoUI`), `bundle.css`, tokens de la librería (con `space-7`) y el README de marca al día; se sustituyeron `FormField`, `OptionGroup`, `CentralTabs` y `Notices`; `AppHeader`, `CatalogBoard`, `CatalogPanel`, `Panel` y la cubierta se conservaron. Las huellas de `bundle.js`, `bundle.css`, `tokens.json` y de un preview coinciden con lo generado, y las tarjetas se ven vivas en el artifact abierto. La copia de seguridad previa está en `design-system/backup-2026-10-15/` (local, ignorada por git).
 - Decisiones cerradas (2026-10-16): las 38 abiertas se resolvieron (ver «Decisiones»), con tres cambios de código: teclas arriba y abajo en `options`, `min-height: 40px` en `OptionCard` y una espera correcta en las pruebas de navegador, que además miden ahora las áreas de puntero en las 48 stories.
 - L-14 cerrado (2026-10-19): `Amount`, `MovementsTable` y `TrendChart` (SVG propio) con el token `color-success-foreground`; 163 tests, 61 stories sin violaciones de axe, áreas de puntero medidas y 61 capturas. Quedan pendientes los incrementos siguientes del dashboard (ver «Pendiente» de L-14) y republicar el Design System, que no incluye aún las tarjetas ni el token nuevos.
+- L-15 cerrado (2026-10-20): `Metric` (cifra clave con variación escrita), `DataPanel` (carga, error y datos anteriores, con anuncios y foco) y el selector de periodo como `SegmentedControl` endurecido; el abono pasa a azul y hay un estilo de texto `metric-value`. 218 tests, 77 stories sin violaciones de axe, áreas de puntero medidas y 77 capturas. Queda pendiente la revisión manual de Chris y republicar el Design System, que no incluye L-14 ni L-15.
+- L-16 cerrado (2026-10-20): `BarChart` (barras agrupadas en SVG propio; cuatro series distinguibles sin color por nombre, posición y relleno de tinta) y orden y filtro opt-in en `MovementsTable`. 270 tests, 89 stories sin violaciones de axe, áreas de puntero medidas y 89 capturas; las 77 anteriores sin tocar. Queda pendiente la revisión manual de Chris y republicar el Design System, que no incluye L-14, L-15 ni L-16.
+- L-17 cerrado (2026-10-21): el dashboard de finanzas compuesto. `usePanelData` (carga por periodo; descarta lo tardío y deriva `loading` en el mismo render), `DashboardStatus` (un solo anunciador: «cargando N paneles» una vez y los errores juntos), `DashboardGrid` y `DashboardCell` (3, 2 y 1 columnas con el orden del DOM igual al visual), `announce` en `DataPanel` y la story `Finanzas/Dashboard`. Queda pendiente la revisión manual de Chris y republicar el Design System, que no incluye L-14 a L-17. Con esto no queda nada del dashboard de finanzas en el «Pendiente».
 - **Siguiente:** no queda ningún incremento abierto salvo `Tooltip`, que solo se hace si aparece un caso real. L-12 (migrar PliegoStack) se descartó: es trabajo de ese proyecto.
 
 | Id | Incremento | Estado | Commit |
@@ -42,6 +45,10 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-11 | Radix: `Drawer` (catálogo), `Tooltip`, `Toast` | parcial: `Drawer` y `Toast` hechos; `Tooltip` pendiente (solo con un caso real) | ver `git log` (`feat: add Drawer`, `feat: add Toast`) |
 | L-12 | Migrar PliegoStack a la librería | descartado (Chris, 2026-10-13): es trabajo del proyecto PliegoStack | |
 | L-14 | `Amount`, `MovementsTable` y `TrendChart` | hecho, con la revisión manual de Chris pendiente | ver `git log` (`feat: add Amount, MovementsTable and TrendChart`) |
+| L-15 | `Metric`, `DataPanel` y el selector de periodo | hecho, con la revisión manual de Chris pendiente | ver `git log` (`feat: add Metric and DataPanel`) |
+| L-16 | `BarChart` y orden y filtro de `MovementsTable` | hecho, con la revisión manual de Chris pendiente | ver `git log` (`feat: add BarChart and sort and filter for MovementsTable`) |
+| L-17 | El dashboard de finanzas compuesto | hecho, con la revisión manual de Chris pendiente | ver `git log` (`feat: add the composed finance dashboard`) |
+| L-18 | Matriz React 18/19 en CI | en curso (brief aprobado el 2026-10-25) | |
 | L-13 | Re-sincronizar el Design System desde la librería | hecho (publicado en el artifact el 2026-10-16, versión 14) | `50d65e0` |
 
 Orden razonado: primero la red de seguridad (CI), luego los primitivos de formulario que todo lo demás usa (`Field`), luego los patrones propios en el orden en que aparecen en la ficha técnica, y solo entonces publicar y migrar. Radix entra cuando haga falta, no antes.
@@ -561,6 +568,309 @@ Propuestas del agente que quedan confirmadas al aprobar el brief:
 **Preguntas abiertas.**
 Ninguna impide empezar.
 
+## L-15 — Estados del dashboard: `Metric`, `DataPanel` y el selector de periodo
+
+Segundo incremento del dashboard de finanzas, acotado a tres piezas del «Pendiente» de L-14: la cifra clave con su variación, el estado de carga y de error de un panel, y el selector de periodo.
+Sin origen en PliegoStack, y el Design System de claude.ai no cubre cifras clave, variaciones ni estados de carga: lo que falta va en «Preguntas abiertas» con una propuesta.
+Valen las decisiones de L-14 y la 41 de «Decisiones».
+
+**Objetivo.**
+Que quien construye un dashboard de finanzas pueda mostrar una cifra clave con cuánto cambió, elegir el periodo que se mira y decir en palabras si un panel está cargando, falló o muestra datos anteriores, de modo que nadie, con o sin lector de pantalla, tome una cifra vieja por vigente ni pierda el foco cuando el panel cambia.
+
+**Alcance.**
+- `Metric`: una cifra clave (saldo, gasto del mes) con su rótulo y, si se le da el valor anterior, su variación escrita.
+  API propuesta: `label` (en minúsculas), `value`, `previous?`, `currency`, `locale?`, `comparison?` (el texto del periodo de comparación, «frente a septiembre») y `labels?` (`up` «sube», `down` «baja», `flat` «sin cambio», `noPrevious` «sin dato anterior», `noPercent` «sin porcentaje: el valor anterior es 0», `lessThan` «menos de»).
+  La cifra va con `Amount` neutro; la diferencia, con `formatAmount`.
+- `formatChange` en `src/utils/formatChange.ts`, interna y con sus tests, junto a `formatAmount`: de un valor y un anterior da la dirección (`up`, `down`, `flat`), la diferencia escrita y el porcentaje escrito o su ausencia.
+  Reglas:
+  - La dirección sale de la diferencia ya redondeada a los decimales de la moneda, como el signo de `Amount`: `0.1 + 0.2 - 0.3` es «sin cambio».
+  - El porcentaje es la diferencia sobre el valor absoluto del anterior, con un decimal y sin signo propio, porque la palabra ya dice hacia dónde.
+  - Con una base negativa la dirección sigue a la diferencia: de −200 a −100 «sube 100,00 US$ (50,0 %)».
+  - Con el anterior en 0 se escribe la diferencia sin porcentaje y la razón; nunca «Infinity» ni «NaN %».
+  - Con el anterior ausente, `null`, `NaN` o no finito, o con el valor actual desconocido, no hay variación: se escribe «sin dato anterior» (o la cifra dice «sin dato», como en `Amount`).
+  - Un porcentaje que redondea a 0,0 con una diferencia que no es cero se escribe «menos de 0,1 %», no «0,0 %»; con la diferencia en cero, «sin cambio» y nada más.
+  - Un porcentaje que no sale finito (un anterior diminuto) se omite como el de base 0.
+- `DataPanel`: el panel del Design System (título sin caja, con el estilo `panel-title`) con un `status` controlado por el consumidor: `ready`, `loading` o `error`.
+  API propuesta: `title`, `status`, `error?` (el texto de qué falló, lo escribe el consumidor), `onRetry?`, `retryLabel` («reintentar»), `loadingLabel` («cargando»), `staleLabel` («datos anteriores; cargando los nuevos»), `staleErrorLabel` («no se pudieron actualizar; estos datos son anteriores») y `children` (los datos).
+  Qué muestra cada estado:
+  - `ready`: los datos, sin ninguna marca.
+  - `loading` sin datos (`children` vacío): solo la línea «cargando», escrita y sin animación, porque el sistema dice que nada más se anima.
+  - `loading` con datos: los datos siguen visibles, con `aria-busy="true"` en su contenedor y, encima, la línea escrita «datos anteriores; cargando los nuevos», enlazada al contenedor con `aria-describedby`. No se atenúan: bajar el contraste de una cifra la vuelve ilegible y no dice nada a quien no la ve.
+  - `error` sin datos: un `Notice` de error con el texto del consumidor y el botón «reintentar» si hay `onRetry`.
+  - `error` con datos: los datos siguen visibles, con la marca escrita «no se pudieron actualizar; estos datos son anteriores», el texto del error y el botón.
+  Qué se anuncia:
+  - Una región `role="status"` que existe siempre, vacía en `ready`, y lleva la línea de carga o de datos anteriores; montada desde el principio, porque una región viva que aparece con su texto no siempre se lee.
+  - `role="alert"` solo para el error sin datos, que deja el panel sin nada que leer. El error con datos anteriores va por la región de estado, porque se puede seguir leyendo.
+  - Al volver a `ready` desde `loading` la región de estado se vacía y no anuncia nada (ver «Preguntas abiertas»).
+  Dónde queda el foco:
+  - El panel no mueve el foco cuando el cambio viene de fuera, por ejemplo de un selector de periodo: el foco sigue en el selector.
+  - Al activar «reintentar», el botón desaparece con el error; el foco pasa al contenedor del panel (`tabIndex={-1}`), que se nombra con su título, y no cae a `<body>`.
+  - Un segundo «reintentar» seguido no llama otra vez a `onRetry`: el panel lo ignora hasta que `status` cambie.
+- Selector de periodo: **no es un componente nuevo**. Es `SegmentedControl` con `kind="options"`, que ya es un `radiogroup` con un punto de tabulación y flechas; un `PeriodSelector` encima solo cambiaría el nombre.
+  Se endurece `SegmentedControl` para los casos que un periodo hace probables, con tests:
+  - Sin opciones no pinta nada (un `radiogroup` sin `radio` no es válido) y no lanza.
+  - Con una sola opción pinta un único segmento elegido, que se alcanza con Tab.
+  - Con valores repetidos se queda con la primera aparición y avisa en consola en desarrollo, en vez de dejar dos segmentos con la misma clave y la misma ref.
+  - Si el valor elegido ya no está entre las opciones, ninguno se marca elegido (no se finge una selección) y el primero que se pueda elegir es el punto de tabulación, como ya hace; el componente no llama a `onChange` por su cuenta.
+  - Si `value` cambia desde fuera mientras el foco está en el grupo, el foco no salta y no se llama a `onChange`.
+  Una story `SegmentedControl · Periodo` (7 días, 30 días, 12 meses, año) y una nota en `docs/COMPONENTS.md`.
+- Una story `DataPanel · Con periodo` que compone `SegmentedControl`, `DataPanel`, `Metric` y `TrendChart` con una carga simulada, para revisar a mano el flujo de anuncios y foco. Es una story, no el dashboard compuesto.
+- El color de una cifra que suma pasa de verde a azul (Chris, 2026-10-20): `color-success-foreground` cambia de `#166534` a `#1d4ed8` (6,36:1 sobre `color-bg-secondary`) en `tokens/tokens.json`, con su `usage` al día. Cambia el aspecto de los abonos de `Amount` y `MovementsTable` de L-14.
+- Un estilo de texto nuevo `metric-value` en `tokens/tokens.json`, con los valores de `measure-input` y su `usage`.
+- Estilos con variables y clases `pui-` en `Metric.css` y `DataPanel.css`; stories de cada estado y de cada caso de la variación; tests; exportaciones de `Metric`, `DataPanel` y sus tipos; secciones en `docs/COMPONENTS.md`; y un changeset `minor`.
+
+**No objetivos.**
+- Barras, varias series con leyenda, orden y filtros en la tabla y el dashboard compuesto: siguen en el «Pendiente» de L-14.
+- Cargar datos, cancelar peticiones o descartar una respuesta que llega tarde: `DataPanel` muestra el `status` que recibe y el consumidor decide cuál es la última petición.
+- Un periodo a medida (desde, hasta) o un calendario.
+- Colorear la variación como buena o mala: que un gasto suba es malo y que un saldo suba es bueno, y eso lo sabe el consumidor (ver «Preguntas abiertas»).
+- Esqueletos, spinners o cualquier animación de carga.
+- Dependencias nuevas, tema oscuro y más tokens que `metric-value` y el valor nuevo de `color-success-foreground`.
+- Renombrar `color-success-foreground`: el nombre dice para qué sirve, no de qué color es.
+
+**Aceptación.**
+1. Un test de `formatChange` comprueba: anterior 0 (diferencia sin porcentaje y con su razón), anterior negativo (de −200 a −100 «sube» y 50,0 %), anterior `undefined`, `null`, `NaN` e `Infinity` (sin variación), valor actual desconocido (sin variación), diferencia que redondea a cero (`0.1 + 0.2 - 0.3`, «sin cambio» y sin porcentaje), porcentaje bajo 0,05 % con diferencia no nula («menos de 0,1 %»), y que ninguna salida contiene `Infinity`, `NaN` ni `−0`.
+2. Un test comprueba que `Metric` escribe el rótulo, la cifra con `Amount` y la variación con su palabra, la diferencia, el porcentaje y `comparison`, que sin `previous` escribe «sin dato anterior», y que el nombre accesible del grupo es el rótulo en minúsculas.
+3. Un test comprueba los tres estados de `DataPanel` sin datos y con datos: qué texto se ve, que los datos con `loading` llevan `aria-busy` y la marca enlazada por `aria-describedby`, que con `error` y datos siguen visibles con su marca, y que en `ready` no queda ninguna marca.
+4. Un test comprueba los anuncios de `DataPanel`: la región `role="status"` existe desde el primer render y en todos los estados, lleva «cargando» y la marca de datos anteriores, y `role="alert"` aparece solo en el error sin datos.
+5. Un test comprueba el foco de `DataPanel`: un cambio de `status` desde fuera no mueve el foco del control que lo tenía, y activar «reintentar» deja el foco en el contenedor del panel, no en `<body>`.
+6. Un test comprueba que dos activaciones seguidas de «reintentar» llaman a `onRetry` una sola vez, y que tras un nuevo `error` el botón vuelve a funcionar.
+7. Un test comprueba `SegmentedControl` sin opciones (no pinta nada y no lanza), con una sola, con valores repetidos (un segmento por valor y un aviso en consola), con un valor que no está entre las opciones (ninguno elegido, primer segmento en el orden de tabulación, `onChange` sin llamar) y con `value` cambiado desde fuera con el foco dentro (el foco no se mueve).
+8. Un test lee `Metric.css` y `DataPanel.css` y comprueba que no hay colores, tamaños ni radios literales fuera de las excepciones comentadas, que no hay `animation` ni `opacity` en los estados, y que no se usa `color-accent`.
+9. `npm run test:a11y` y `npm run test:touch` terminan en 0 con las stories nuevas, y `npm run test:visual:update` genera sus capturas, que Chris revisa.
+10. Se revisa a mano en Storybook (`npm run dev`) con teclado, `pointer: coarse` emulado y VoiceOver: el selector de periodo con flechas, la línea «cargando» que se oye una vez, el error que se oye al momento, el foco en el panel tras «reintentar», la marca de datos anteriores legible, y el anillo de foco de 2 px.
+11. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, `src/index.ts` exporta `Metric`, `DataPanel` y sus tipos, y `package.json` no gana dependencias.
+12. Un test comprueba que `color-success-foreground` es azul (tono entre 200° y 250°), que se distingue de `color-accent-ink` en al menos 15° de tono, y que cumple 4,5:1 sobre `color-bg-primary` y `color-bg-secondary`; las capturas de los abonos de `Amount` y `MovementsTable` se regeneran con `npm run test:visual:update` y Chris las revisa.
+13. Hay un changeset, `docs/COMPONENTS.md` documenta `Metric`, `DataPanel` y el uso de `SegmentedControl` como periodo, `docs/PLAN.md` actualiza la tabla de estado y «Estado actual», y la verificación del repositorio (`.verify.conf`) pasa.
+
+**Rollback.** Revertir el único commit del incremento y su changeset.
+
+**Decisiones ya tomadas.**
+Mandan `docs/COMPONENTS.md` y el Design System de claude.ai; valen las decisiones de L-14 (Chris, 2026-10-19).
+Chris pidió el 2026-10-20 acotar el incremento a dos o tres piezas del «Pendiente».
+Propuestas del agente que quedan confirmadas al aprobar el brief:
+- El selector de periodo es `SegmentedControl` con `kind="options"` y no un componente nuevo.
+- La dirección de una variación sale de la diferencia redondeada y no del porcentaje; con base negativa, el porcentaje es sobre su valor absoluto.
+- Los datos anteriores se dejan visibles y marcados en palabras, sin atenuar, en vez de ocultarse.
+- `role="alert"` solo en el error sin datos; todo lo demás va por una región `role="status"` que existe siempre.
+- Tras «reintentar» el foco va al contenedor del panel; los cambios que vienen de fuera no mueven el foco.
+
+Respuestas de Chris al brief, 2026-10-20:
+- La variación no lleva color: va en tinta con su palabra. Una prop `goodWhen` queda para otro incremento.
+- La cifra de `Metric` usa un estilo de texto nuevo, `metric-value`, con los valores de `measure-input`.
+- `Metric` va sin caja, con un filete superior de `color-border`.
+- No se anuncia «actualizado» al terminar una carga.
+- El título de `DataPanel` es un `h2` fijo.
+- El abono pasa de verde a azul. El agente eligió `#1d4ed8`: 6,36:1 sobre el papel, casi el contraste del verde (6,7:1), y un tono (unos 224°) que se separa del de `color-accent-ink` (unos 197°), el del anillo de foco y los enlaces. Además, azul frente a rojo se distingue mejor que verde frente a rojo con daltonismo rojo-verde.
+
+**Preguntas abiertas.**
+Ninguna.
+
+**Pendiente (incrementos siguientes, sin construir).**
+Barras y varias series con leyenda; orden y filtros en la tabla; el dashboard compuesto; y, si Chris lo pide, `goodWhen` en `Metric` y un `readyLabel` en `DataPanel`.
+
+## L-16 — Barras con varias series y orden y filtro de `MovementsTable`
+
+Tercer incremento del dashboard de finanzas, acotado a dos piezas del «Pendiente» de L-15: un gráfico de barras con varias series y leyenda, y el orden y el filtro de la tabla de movimientos.
+El dashboard compuesto queda para el incremento siguiente.
+Sin origen en PliegoStack, y el Design System de claude.ai no cubre series de datos, leyendas ni tablas ordenables: lo que falta va en «Preguntas abiertas» con una propuesta.
+Valen las decisiones de L-14 y L-15 y las entradas 41 y 42 de «Decisiones».
+
+**Objetivo.**
+Que quien construye un dashboard de finanzas pueda comparar varias series por categoría (ingresos y gastos por mes) y encontrar un movimiento ordenando o filtrando la tabla, de modo que cada serie se distinga sin depender del color y que quien usa teclado o lector de pantalla sepa en todo momento qué orden y qué filtro tiene la tabla.
+
+**Alcance.**
+- `BarChart`: barras agrupadas en SVG propio, con `role="img"` y nombre accesible, que reutiliza `Amount`, `formatSigned` y el patrón de `TrendChart` (resumen escrito, tabla de valores visible en un `<details>`).
+  API propuesta: `title`, `categories: string[]` (las etiquetas del eje), `series: { name: string; values: (number | null | undefined)[] }[]` (cada `values[i]` pertenece a `categories[i]`), `currency`, `locale?` y `labels?` (`empty` «sin datos para graficar», `values` «valores», `category` «categoría», `legend` «series», `moreSeries` «se muestran {shown} de {total} series; las demás están en la tabla», `min` «mínimo», `max` «máximo»).
+  - **Cómo se distinguen las series (pregunta 1).** Cada serie lleva un nombre escrito en la leyenda y un tratamiento de relleno propio, siempre de tinta: macizo, rayas diagonales, puntos y trama cruzada. Barra y muestra de la leyenda usan el mismo patrón SVG, y dentro de cada grupo las barras van en el orden de la leyenda. Todas llevan contorno de tinta de 2 px, que da el contraste de 3:1 del dibujo sobre el papel sin depender del relleno. Son cuatro tratamientos y no hay tonos nuevos: ni tokens ni dependencias.
+  - **Leyenda.** Una lista (`<ul>`) con la muestra (aria-hidden) y el nombre en texto. Solo aparece con dos o más series: con una, el título ya la nombra y la tabla tiene su columna.
+  - **Escala.** Siempre incluye el 0, porque una barra que no parte de cero miente. Con todo en 0 la escala usa un rango de 1 y no divide por cero. Un valor 0 deja una marca de tinta en la base (un `rect` de alto cero no se pinta, lo dice SVG) y un valor desconocido no dibuja nada; la tabla dice «sin dato».
+  - **Etiquetas del eje.** Una fila HTML bajo el SVG, con `aria-hidden` porque la tabla ya las tiene, para que el texto no se escale con el `viewBox`. Una etiqueta larga parte la línea en vez de desbordar.
+  - **Series irregulares.** Una serie más corta que `categories` deja las categorías que le faltan como «sin dato». Los valores que sobran no tienen categoría que los nombre: no se dibujan ni entran en la tabla.
+  - **Nombres repetidos.** Se conservan todas las series y se desambigua el nombre repetido con « (2)», « (3)», para que ninguna deje de leerse.
+  - **Más de cuatro series (pregunta 2).** Se dibujan las cuatro primeras, se escribe la frase `moreSeries` y la tabla conserva todas.
+  - Sin categorías, sin series o sin ningún valor conocido: «sin datos para graficar» y ningún SVG.
+- `MovementsTable` gana orden y filtro, ambos **opt-in** y apagados por omisión, de modo que un uso actual no cambia ni en el DOM ni en el aspecto.
+  - Nuevas props: `sortable?: boolean`, `defaultSort?: { column: 'date' | 'description' | 'amount'; direction: 'ascending' | 'descending' }`, `onSortChange?`, `filterable?: boolean` y, en `labels`, `filter` («filtrar»), `sortedBy` («ordenado por {column}, {direction}»), `ascending` («de menor a mayor»), `descending` («de mayor a menor»), `unsorted` («sin orden»), `noMatches` («ningún movimiento coincide con «{query}»»), `count` («{shown} de {total} movimientos»).
+  - **Orden.** Con `sortable`, cada cabecera es un `<th scope="col" aria-sort>` con un `<button>` dentro cuyo nombre es el rótulo de la columna («importe»). El clic pasa por ascendente, descendente y el orden original (pregunta 3). Solo una columna tiene `aria-sort` distinto de `none`, y el botón enseña una flecha (forma, no color) del estado que `aria-sort` dice en palabras.
+  - **Reglas del orden.** Un valor desconocido va **siempre al final**, en ascendente y en descendente: el importe ausente o no finito, la fecha vacía o que no es una fecha ISO válida (`2026-02-31`), y el concepto vacío. Los empates conservan el orden original también en descendente. Los importes negativos ordenan por su valor (−600 antes que 32). El concepto se compara con `Intl.Collator` del `locale` recibido (tildes y números razonables), con respaldo si el `locale` es inválido. El orden no modifica `movements`.
+  - **Filtro.** Con `filterable`, un campo de texto con etiqueta visible «filtrar» sobre la tabla. Coincide si el texto buscado aparece en el concepto o en la fecha tal como se escribe (después de `formatDate`), sin distinguir mayúsculas ni tildes, ignorando espacios en los extremos y tomando los caracteres especiales literalmente. Un texto vacío o solo de espacios no filtra (pregunta 4).
+  - **Cero resultados.** La fila dice «ningún movimiento coincide con «xyz»», distinta de «sin movimientos», que queda para cuando `movements` viene vacío.
+  - **Anuncios.** Una región `role="status"`, montada desde el primer render y visualmente oculta, dentro de la región de la tabla. Al ordenar anuncia «ordenado por importe, de mayor a menor» en el momento. El conteo de filas («3 de 12 movimientos») se ve al instante junto al campo y se anuncia en esa región 500 ms después de la última tecla, para no leer una cifra por pulsación (pregunta 5).
+  - Orden y filtro se componen: el filtro actúa y luego se ordena lo que queda, y cambiar uno no borra el otro.
+  - Sin `sortable` ni `filterable` la salida es la de L-14, sin región de estado, sin botones y sin campo.
+- Stories de `BarChart` (por defecto con dos series, una serie, cuatro series, más de cuatro, negativos, ceros, valores desconocidos, series de distinta longitud, vacío) y de `MovementsTable` (con orden, con filtro, con ambos, sin resultados, con importes desconocidos).
+- Estilos con variables y clases `pui-` en `BarChart.css` y en `MovementsTable.css`; utilidades internas con sus tests en `src/utils/`; exportaciones de `BarChart` y sus tipos; secciones en `docs/COMPONENTS.md`; y un changeset `minor`.
+- `BarChart` es un componente nuevo y no una opción de `TrendChart`: la forma de los datos es otra (una matriz de categorías por series, no una lista de puntos), y `TrendChart` queda sin tocar. Reutiliza `Amount`, `formatSigned` y el mismo patrón de resumen y tabla.
+
+**No objetivos.**
+- Tonos de color para las series, tokens nuevos o dependencias: el sistema no los tiene, y proponer otra cosa es una pregunta.
+- Barras apiladas, horizontales, tarta, ejes con marcas numéricas, líneas de cuadrícula y varias series en `TrendChart`.
+- Interacción con puntero en las barras (tooltip, resaltado, clic en la leyenda para ocultar una serie): la lectura es por la tabla.
+- Orden o filtro por importe o por rango de fechas, orden por varias columnas, paginación y selección de filas.
+- Orden y filtro controlados desde fuera (`sort`, `filter` como props controladas): `defaultSort` y `onSortChange` bastan hasta que un consumidor lo pida.
+- El dashboard compuesto, `goodWhen` en `Metric` y `readyLabel` en `DataPanel`.
+- Resolver la entrada 43 de «Decisiones» (la comparación visual no ve un cambio de color en texto pequeño): este incremento no cambia ningún color existente, y las pruebas de `BarChart` comprueban los patrones en el DOM, no solo en una captura (ver «Preguntas abiertas»).
+
+**Aceptación.**
+1. Un test de la utilidad de orden (`src/utils/sortMovements.test.ts`) comprueba: importes en ascendente y descendente con negativos y ceros; importe `undefined`, `null`, `NaN` e `Infinity` al final en las dos direcciones; fecha vacía y fecha inválida (`2026-02-31`, `hoy`) al final; empates en el orden original también en descendente; concepto con tildes y números («cuota 2» antes de «cuota 10»); concepto vacío al final; el arreglo de entrada sin modificar; y orden «ninguno» devuelve el original.
+2. Un test de la utilidad de filtro (`src/utils/filterMovements.test.ts`) comprueba: mayúsculas y tildes («cafe» encuentra «Café»), espacios en los extremos, texto solo de espacios que no filtra, caracteres de expresión regular (`(`, `.*`) tomados literalmente, coincidencia por la fecha tal como se escribe tras `formatDate`, y cero resultados.
+3. Un test comprueba que `MovementsTable` sin `sortable` ni `filterable` produce el mismo DOM que en L-14: la raíz es la región, no hay `button`, `input` ni `role="status"`. Además `git diff -U0 -- src/components/MovementsTable/MovementsTable.test.tsx | grep '^-[^-]'` no imprime nada (solo se añaden tests) y `git status --short e2e/visual.spec.ts-snapshots` no muestra ninguna captura existente modificada ni borrada antes de generar las nuevas.
+4. Un test del orden en `MovementsTable` comprueba: cada cabecera es un botón con el rótulo como nombre accesible; `aria-sort` es `none` en todas al inicio, `ascending`/`descending` solo en la columna activa y vuelve a `none` en el tercer clic; las filas cambian de orden; Enter y Espacio funcionan; cambiar de columna deja a la anterior en `none`; `defaultSort` y `onSortChange` se respetan; y la región de estado dice «ordenado por importe, de mayor a menor».
+5. Un test del filtro en `MovementsTable` comprueba, escribiendo con `userEvent` letra a letra: el campo tiene etiqueta visible; las filas se reducen a cada pulsación; el conteo visible cambia al instante; el texto del anuncio cambia solo tras 500 ms de la última tecla (con temporizadores simulados) y no se repite por pulsación; cero resultados dice «ningún movimiento coincide con «…»» y no deja la tabla muda; con `movements` vacío sigue diciendo «sin movimientos»; y filtro y orden se componen.
+6. Un test de datos de `BarChart` comprueba, sin `NaN`, `Infinity` ni `undefined` en el SVG: sin series, sin categorías y una serie sin valores («sin datos para graficar», sin SVG); un solo punto; series de distinta longitud (la corta con «sin dato», los sobrantes ignorados); un negativo y un 0 entre positivos (la base en 0, el 0 con su marca en la base); `null`, `NaN` e `Infinity` (sin barra y «sin dato» en la tabla); todo en 0 (escala sin división por cero); dos series con el mismo nombre (ambas conservadas y desambiguadas); más de cuatro series (cuatro dibujadas, la frase de aviso, todas en la tabla).
+7. Un test de accesibilidad de `BarChart` comprueba: `role="img"` con nombre que incluye el título, las series y el rango; leyenda solo con dos o más series y con cada nombre en texto; la muestra de cada serie y todas sus barras usan el mismo patrón y dos series nunca comparten patrón; el orden de las barras dentro de un grupo es el de la leyenda; la tabla visible dentro de un `<details>` abierto lista todas las categorías por todas las series; y las etiquetas del eje son `aria-hidden`.
+8. Un test lee `BarChart.css` y `MovementsTable.controls.css` (los estilos de orden y filtro, en un archivo aparte para que `MovementsTable.css` y su test de L-14, que solo admite 1 px y 2 px, no cambien) y comprueba que no hay colores, tamaños ni radios literales fuera de 1 px, 2 px y los 40/44 px de área mínima, comentados; que `color-accent` no es color de texto ni de trazo; y que no hay `animation`.
+9. `npm run test:a11y` y `npm run test:touch` terminan en 0 con las stories nuevas; `npm run test:visual` pasa **antes** de regenerar, con las 77 capturas existentes sin tocar; y `npm run test:visual:update` solo añade las capturas de las stories nuevas, que Chris revisa.
+10. Se revisa a mano en Storybook (`npm run dev`) con teclado, `pointer: coarse` emulado y VoiceOver: las series se distinguen en una captura en escala de grises y con un simulador de daltonismo; la leyenda coincide con las barras sin color; Tab llega a cada botón de orden y al campo con el anillo de 2 px; VoiceOver dice la columna y su orden al ordenar y el conteo con calma al filtrar; y la tabla de valores del gráfico se recorre en orden lógico.
+11. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0, `src/index.ts` exporta `BarChart` y sus tipos (y los tipos nuevos de `MovementsTable`), y `package.json` no gana dependencias.
+12. Hay un changeset, `docs/COMPONENTS.md` documenta `BarChart` y el orden y el filtro de `MovementsTable` (y quita de esa sección «sin orden, filtros ni paginación»), `docs/PLAN.md` actualiza la tabla de estado y «Estado actual», y la verificación del repositorio (`.verify.conf`) pasa.
+
+**Rollback.** Revertir el único commit del incremento y su changeset. Como orden y filtro son opt-in, ningún consumidor de `MovementsTable` depende de ellos hasta que los active.
+
+**Decisiones ya tomadas.**
+Mandan `docs/COMPONENTS.md` y el Design System de claude.ai; valen las decisiones de L-14 y L-15.
+Chris pidió el 2026-10-20 acotar este incremento a dos o tres piezas del «Pendiente» y propuso la combinación de barras con leyenda y orden y filtro, dejando el dashboard compuesto para el siguiente.
+Propuestas del agente que quedan confirmadas al aprobar el brief:
+- `BarChart` es un componente nuevo, en SVG propio y sin dependencias.
+- `MovementsTable` gana orden y filtro como props opt-in, apagadas por omisión; no se crea una tabla nueva.
+- Un valor desconocido va siempre al final del orden, en las dos direcciones, y los empates conservan el orden original.
+- El conteo de filas se ve al instante y se anuncia con retraso; el orden se anuncia al momento.
+- La gráfica sigue sin interacción con puntero: la lectura es por la tabla.
+
+**Preguntas abiertas.**
+Ninguna impide empezar, y todas traen la propuesta que se construye si Chris no dice otra cosa.
+1. **¿Cómo se distinguen las series sin color, y de dónde salen los tonos?** Propuesta: cuatro tratamientos de relleno de tinta (macizo, rayas, puntos, trama cruzada), con nombre en la leyenda y posición fija. Sin token ni dependencia nueva. Alternativa: una paleta de matices, que pide tokens nuevos con su `usage`, contraste de 3:1 de cada uno sobre el papel y una comprobación con daltonismo, y que aun así necesitaría el patrón para no depender del color. Si Chris la quiere, es otro brief.
+2. **¿Cuántas series admite?** Propuesta: cuatro, con la frase de aviso y la tabla completa para las demás. Alternativa: repetir los patrones a partir de la quinta, que haría dos series indistinguibles y por eso no se propone.
+3. **¿El clic de ordenar tiene tres estados?** Propuesta: ascendente, descendente y el orden original, porque en un extracto el orden de llegada es información. Alternativa: dos estados, sin vuelta al original.
+4. **¿Qué busca el filtro?** Propuesta: concepto y fecha escrita, sin el importe. Buscar «600» en importes pide decidir cómo se comparan cifras con formato, y puede ser un incremento propio.
+5. **¿Qué retraso tiene el anuncio del conteo?** Propuesta: 500 ms tras la última tecla. Se afina con VoiceOver en la revisión manual.
+6. **Entrada 43 (abierta).** No se resuelve aquí. Este incremento no cambia el color de nada existente, así que no la agrava; pero un patrón de `BarChart` podría cambiar de densidad sin que la captura lo note, y por eso el criterio 7 lo comprueba en el DOM. Decidir cómo se vigilan los colores sigue siendo de Chris.
+
+**Pendiente (incrementos siguientes, sin construir).**
+El dashboard compuesto; y, si Chris lo pide, `goodWhen` en `Metric`, `readyLabel` en `DataPanel`, una paleta de matices para series, orden y filtro controlados y barras apiladas.
+
+## L-17 — El dashboard de finanzas compuesto
+
+Cuarto y último incremento del dashboard de finanzas: reunir `Metric`, `DataPanel`, `TrendChart`, `BarChart`, `MovementsTable` y el selector de periodo en una pantalla.
+Casi no hay primitivos nuevos; el trabajo es de composición, y el brief dice qué se construye y qué no.
+El Design System de claude.ai no cubre composición de pantallas ni finanzas: lo que falta va en «Preguntas abiertas» con una propuesta.
+Valen las decisiones de L-14, L-15 y L-16 y las entradas 41 a 44 de «Decisiones».
+
+**Objetivo.**
+Que quien monta un dashboard de finanzas con estas piezas obtenga una pantalla en la que cambiar el periodo carga cada panel por su cuenta, un panel que falla no tumba a los demás, ninguna cifra anterior pasa por vigente, un lector de pantalla oye un aviso por cambio y no uno por panel, y el teclado recorre la pantalla en el orden en que se ve, desde 375 hasta 1024 px.
+
+**Alcance.**
+- `usePanelData(key, load)` en `src/hooks/usePanelData.ts`, exportada. Es la pieza que hace segura la composición: sin ella cada consumidor reescribe, sin pruebas, la lógica que descarta respuestas tardías (ver «Preguntas abiertas», 1).
+  - `load(key, signal)` devuelve una promesa; `key` es lo que identifica la petición (el periodo, o `undefined` para un panel que no depende de él).
+  - Devuelve `{ status, data, dataKey, error, retry }`. `data` es el último dato que llegó y `dataKey`, la clave a la que pertenece: así el consumidor escribe «datos de 30 días» y no «datos anteriores» a secas.
+  - **El estado se deriva en el mismo render en que cambia `key`**, no en un efecto posterior: no existe un fotograma con el periodo nuevo, `ready` y los datos viejos. Es el hueco por el que una cifra vieja pasaría por vigente.
+  - Una respuesta, buena o mala, de una clave que ya no es la actual se descarta, y su `AbortSignal` se aborta al cambiar de clave y al desmontar. Cambiar dos veces seguidas deja solo la última.
+  - Un error conserva `data` y `dataKey` (datos anteriores, marcados por `DataPanel`) y nunca los borra. Un `load` que lanza sin ser asíncrono se trata como un error, no como una excepción de render.
+  - `retry` vuelve a pedir la clave actual una sola vez, aunque se llame dos veces seguidas.
+  - No cachea: volver a un periodo ya visto lo vuelve a pedir. Un caché pide una regla de caducidad que nadie ha pedido.
+- `DataPanel` gana `announce?: boolean`, **opt-in a la baja**: por omisión es `true` y el panel es exactamente el de L-15. Con `false` la región de estado deja de ser viva (`aria-live="off"`) y el `Notice` de error pierde el rol `alert`; el texto sigue visible y navegable. Es el único cambio a una pieza anterior, y es aditivo.
+- `DashboardStatus`: **el único anunciador de la pantalla**. Recibe `panels: { title: string; status: DataPanelStatus }[]` y `labels?` y pinta dos regiones visualmente ocultas y montadas desde el primer render: una `role="status"` y una `role="alert"`.
+  - **Carga.** Cuando alguno pasa a `loading`, y tras una espera de 250 ms para juntar los que cambian a la vez, la región de estado dice una vez «cargando 4 paneles». Que los demás terminen no reescribe el texto, y un segundo cambio de periodo con paneles aún cargando no lo repite.
+  - **Error.** Los paneles que pasan a `error` se juntan en la misma espera de 250 ms y la región `alert` dice, una vez y en el orden visual, «no se pudieron cargar: saldo, movimientos». Con todos fallando es un solo aviso, no cinco.
+  - **Éxito.** No se anuncia nada al terminar, como pide la entrada 42 («actualizado» no se anuncia).
+  - Los paneles de la pantalla pasan `announce={false}`; su marca escrita sigue a la vista. Un panel quitado de la lista no deja nada colgado, y una lista vacía pinta las regiones vacías sin lanzar.
+- `DashboardGrid` y `DashboardCell`, estructura sin comportamiento. No se hace una sección con encabezado: `DataPanel` ya es una sección nombrada con su `h2` fijo (entrada 42), y una sección con otro encabezado obligaría a que el panel fuera `h3` o dejaría dos niveles iguales.
+  - `DashboardGrid` es un `div` con rejilla CSS `repeat(auto-fit, minmax(min(100%, 18rem), 1fr))` y separación de `space-6`. A 1024 px caben 3 columnas, a 768 px 2 y a 375 px 1. `DashboardCell` con `wide` ocupa la fila entera (`grid-column: 1 / -1`) y siempre lleva `min-width: 0`, para que una gráfica o una tabla no ensanchen la página: la tabla se desplaza dentro de su propia región.
+  - **El orden del DOM es el orden visual.** Ni `order`, ni `grid-auto-flow: dense`, ni posiciones de rejilla explícitas; un test lo lee en el CSS y otro lo mide en el navegador.
+  - `main`, el `h1` y el nombre de la página son del consumidor, no de la librería: la rejilla no impone un punto de referencia ni un encabezado.
+- La story `Finanzas/Dashboard` con datos de ejemplo, que es lo que se prueba de punta a punta. Un componente de ejemplo único, usado por todas las stories y por los tests, con cinco paneles: «saldo» (tres `Metric`, USD), «evolución del saldo» (`TrendChart`), «ingresos y gastos» (`BarChart`), «movimientos» (`MovementsTable` con orden y filtro) y «cuenta en pesos» (un `Metric` en CLP, **que no depende del periodo**). Stories: `Default`, `Cargando`, `Todos fallan`, `Uno falla con datos anteriores`, `Con periodo` (carga simulada, con un panel lento y otro que falla la primera vez) y `Un panel menos`.
+- Rendimiento: cada panel es su propio componente con `memo` y recibe props estables (datos en el estado del hook, no recreados en cada render). Cambiar el periodo vuelve a pedir y a pintar solo los paneles que dependen de él; «cuenta en pesos», no. No se añade `useMemo` dentro de las piezas de L-14 a L-16.
+- Documentación en `docs/COMPONENTS.md` (sección «Dashboard compuesto», con la receta de anuncios, foco y orden), exportaciones en `src/index.ts`, un changeset `minor`, y las secciones nuevas de este brief.
+
+**No objetivos.**
+- Cargar datos reales, caché, reintentos automáticos, sondeo o cancelación más allá del `AbortSignal`.
+- Sumar, convertir o comparar monedas: la librería no calcula totales entre monedas ni conoce tipos de cambio. Cada panel lleva una moneda y la dice.
+- Un periodo a medida, `goodWhen`, `readyLabel`, barras apiladas, orden y filtro controlados o una paleta de matices.
+- Tema oscuro, tokens nuevos y dependencias nuevas.
+- Cambiar el comportamiento, el DOM por omisión o el aspecto de cualquier pieza de L-14 a L-16, salvo el `announce` opt-in de `DataPanel`.
+- Resolver la entrada 43 de «Decisiones».
+- Capturas de la story a tres anchos en la comparación visual (ver «Preguntas abiertas», 6).
+
+**Aceptación.**
+1. `src/hooks/usePanelData.test.tsx` comprueba, con promesas controladas: los tres estados; que en el render en que cambia `key` el estado ya es `loading` (se registra cada render y ninguno junta `key` nueva, `ready` y `dataKey` distinto); que una respuesta tardía de una clave anterior, buena o mala, no pisa a la actual; A→B→C seguidos dejan solo C y abortan las señales de A y B; que repintar con la misma clave no vuelve a pedir; que un error conserva `data` y `dataKey`; que un `load` que lanza síncrono da error; que `retry` dos veces seguidas pide una sola vez; que desmontar aborta y no escribe estado; y una clave que no existe (el `load` la rechaza) da error con los datos anteriores marcados. `npx vitest run src/hooks` en verde.
+2. Un test de `DataPanel` comprueba que con `announce` omitido el DOM y los roles son los de L-15, y con `announce={false}` la región de estado tiene `aria-live="off"`, el `Notice` de error no es `alert`, el texto sigue visible y el foco tras «reintentar» sigue llegando al panel. `git diff -U0 -- src/components/DataPanel/DataPanel.test.tsx | grep '^-[^-]'` no imprime nada.
+3. `DashboardStatus.test.tsx`, con temporizadores simulados y un `MutationObserver` que cuenta cuántas veces cambia el texto de cada región: todos cargando dan un solo cambio, «cargando N paneles»; que los paneles terminen no lo reescribe; un segundo cambio de periodo durante la carga no lo repite; todos fallando dan un solo aviso en la región `alert` con los títulos en orden; uno que falla con los demás listos nombra solo ese; terminar bien no anuncia nada; un panel quitado y una lista vacía no lanzan; y dos cambios dentro de la espera de 250 ms dan un único aviso.
+4. `DashboardGrid.test.tsx` comprueba que el orden del DOM es el de los hijos, que `wide` ocupa la fila, y lee `DashboardGrid.css` para comprobar que no hay `order`, `dense` ni posiciones explícitas, ni colores, tamaños o radios literales fuera de las excepciones comentadas (`18rem` del mínimo de columna, comentado), ni `animation`.
+5. `Dashboard.test.tsx` renderiza la story con `composeStories` y comprueba, con la red simulada: (a) todos cargando: un único texto vivo no vacío en la pantalla (el de `DashboardStatus`) y todos los paneles con su marca escrita a la vista; (b) todos fallando: un solo `alert` y cada panel con su botón «reintentar»; (c) uno falla con datos anteriores y los demás listos: los demás intactos, el que falló con su marca «no se pudieron actualizar; estos datos son de 30 días» y sin ninguna cifra suya presentada como vigente; (d) un panel más lento que el siguiente cambio de periodo: su respuesta tardía no sustituye a la del periodo nuevo; (e) cambio de periodo mientras se carga, dos veces seguidas: gana el último, y a un periodo que no existe el selector no cambia y no se pide nada; (f) un panel sin datos junto a otro con datos: el primero dice «sin datos para graficar» y el otro no se afecta; (g) las dos monedas: ningún texto combina USD y CLP, cada cifra lleva su moneda y ningún panel muestra una suma de ambas.
+6. El mismo archivo comprueba el foco: con el foco en el campo de filtro de la tabla, y luego en el selector de periodo, un cambio de periodo y la sustitución de los datos dejan `document.activeElement` donde estaba y el texto escrito en el filtro; «reintentar» deja el foco en el panel (L-15); y ningún `tabindex` positivo en toda la pantalla.
+7. El mismo archivo comprueba la estructura: exactamente un `main` y un `h1`; los `h2` de los paneles siguen al `h1` sin saltos y no hay encabezados más profundos; cada región, grupo, figura y `img` tiene nombre accesible y **no hay dos con el mismo nombre**; y la misma comprobación pasa con un panel quitado (`Un panel menos`).
+8. El mismo archivo comprueba el rendimiento: tras un cambio de periodo el `load` de «cuenta en pesos» se llamó una sola vez en total (la carga inicial) y su `Profiler` no registra ninguna actualización; los demás paneles se pidieron una vez por periodo.
+9. `e2e/dashboard.spec.ts` abre la story a 375, 768 y 1024 px y comprueba: sin desbordamiento horizontal de la página (`scrollWidth <= clientWidth`) ni elemento fuera del ancho salvo dentro de una región que se desplaza; 1, 2 y 3 columnas de paneles; el orden de los paneles por posición (arriba, izquierda) coincide con el del DOM; y una pasada con Tab alcanza todos los controles en el orden visual, sale de la pantalla en un número acotado de pulsaciones y nunca deja el foco en el mismo elemento dos veces seguidas (sin bloqueo en una gráfica ni en una tabla).
+10. `npm run test:a11y` y `npm run test:touch` terminan en 0 con las stories nuevas (el 44 px con puntero grueso incluido), `npm run test:visual` pasa **antes** de regenerar con las 89 capturas existentes sin tocar, y `npm run test:visual:update` solo añade las de las stories nuevas, que Chris revisa.
+11. Los tests y las capturas de L-14 a L-16 no cambian: `git diff -U0 -- 'src/components/*/*.test.tsx' | grep '^-[^-]'` no imprime nada y `git status --short e2e/visual.spec.ts-snapshots` no muestra ninguna captura existente modificada ni borrada.
+12. Revisión manual de Chris en Storybook (`npm run dev`) con teclado, `pointer: coarse` emulado y VoiceOver: cambiar de periodo se oye **una vez** («cargando N paneles»); todos fallando se oye una vez y en orden; el foco no salta al cambiar de periodo ni al llegar los datos; Tab recorre en el orden en que se ve y no se queda en una gráfica ni en la tabla; los puntos de referencia y encabezados se recorren con el rotor; y a 375, 768 y 1024 px nada se corta.
+13. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0; `src/index.ts` exporta `usePanelData`, `DashboardStatus`, `DashboardGrid`, `DashboardCell` y sus tipos; `package.json` no gana dependencias.
+14. Hay un changeset, `docs/COMPONENTS.md` documenta el dashboard compuesto, `docs/PLAN.md` actualiza la tabla de estado, «Estado actual» y «Decisiones», y la verificación del repositorio pasa.
+
+**Autoexamen** (`adversarial-self-check`, una línea por pregunta; la respuesta real y la línea que falló antes irán en el reporte final).
+- Pregunta 1: *Entrada desconocida*: un periodo que no existe, una clave repetida o un `load` que rechaza con algo que no es un `Error` → criterios 1 y 5e.
+- Pregunta 2: *Dónde se aplica la regla*: descartar la respuesta tardía se hace en el hook, donde se escribe el estado, no en el story → criterio 1.
+- Pregunta 3: *Lo mostrado frente a lo registrado*: el periodo elegido frente al `dataKey` de lo que se pinta → criterios 1 y 5c.
+- Pregunta 4: *Coincidencias ambiguas*: títulos de panel repetidos y nombres de región repetidos → criterios 3 y 7.
+- Pregunta 5: *Completitud*: el aviso cubre todos los paneles, también el que cambia dentro de la espera, no solo el último → criterio 3.
+- Pregunta 6: *Dependencia ausente*: la red falla, el panel no tiene datos, la lista de paneles queda vacía → criterios 3, 5b y 5f.
+
+**Rollback.** Revertir el único commit del incremento y su changeset. `announce` es opt-in y por omisión no cambia nada, y nada de L-14 a L-16 depende de lo nuevo.
+
+**Decisiones ya tomadas.**
+Mandan `docs/COMPONENTS.md` y el Design System de claude.ai; valen las decisiones de L-14, L-15 y L-16.
+Chris pidió el 2026-10-20 que el último incremento componga las piezas existentes con pocas piezas nuevas y que el brief diga qué se construye y qué no.
+
+**Preguntas abiertas.**
+Ninguna impide empezar. Todas traen la propuesta que se construye si Chris no dice otra cosa.
+1. **¿`usePanelData` se exporta, o la lógica vive solo en la story?** Propuesta: exportarla. Descartar la respuesta tardía es lo más fácil de hacer mal al componer, y dejarla en la story la deja sin contrato ni pruebas para el consumidor. Alternativa: que sea cosa de cada app, con una receta en `docs/COMPONENTS.md`. Cuesta una API pública más que mantener.
+2. **¿`DataPanel` gana `announce`?** Propuesta: sí, opt-in a la baja, porque sin él cada panel anuncia por su cuenta y el dashboard tiene cinco voces. Alternativa: no tocar `DataPanel` y aceptar un aviso por panel, que es lo que este brief busca evitar.
+3. **¿Cuándo se anuncia el error?** Propuesta: tras 250 ms de espera para juntar los que fallan a la vez, y sin esperar a que terminen los lentos, porque un error no debe quedar callado detrás de una carga de 30 s. Alternativa: esperar a que todo termine, que lo hace más corto pero más tardío.
+4. **Monedas.** Propuesta: cada panel lleva una sola moneda, la dice en su título («cuenta en pesos») y la librería no suma ni convierte. `Amount` no tiene `currencyDisplay: 'code'`: si un consumidor muestra dos monedas que comparten símbolo en su `locale`, las cifras serían ambiguas. Se reporta, no se arregla aquí; la story usa `es-CL`, donde USD se escribe «US$» y CLP «$».
+5. **¿El filtro y el orden de la tabla sobreviven a un cambio de periodo?** Propuesta: sí, la tabla no se remonta y conserva el texto escrito y el orden, que ya son un estado de quien lee. Alternativa: reiniciarlos, que pierde lo escrito por quien estaba filtrando.
+6. **Capturas.** Propuesta: la comparación visual guarda la captura de cada story al tamaño fijo del proyecto (640 px) y los tres anchos se comprueban en el DOM (criterio 9). Tres capturas por ancho añadirían imágenes que revisar sin cubrir lo que el criterio 9 mide. La entrada 43 no se agrava: este incremento no cambia ningún color.
+7. **Sin sección con encabezado.** Propuesta: no hay `DashboardSection`; los paneles son los `h2` y la página aporta el `h1`. Si Chris quiere agrupar paneles bajo un encabezado intermedio, `DataPanel` tendría que aceptar el nivel (hoy es un `h2` fijo por decisión de L-15) y eso es otro brief.
+
+**Pendiente (incrementos siguientes, sin construir).**
+Nada del dashboard de finanzas. Quedan, si Chris los pide: `goodWhen`, `readyLabel`, nivel de encabezado de `DataPanel`, una paleta de matices para series, orden y filtro controlados, barras apiladas y `currencyDisplay` en `Amount`.
+
+## L-18 — Matriz React 18/19 en CI
+
+`@caravenas/pliego-ui@0.1.0` está publicado con `peerDependencies` que admite React 19, pero los tests corren solo en 18 (decisión 6). Este incremento comprueba esa promesa.
+Sin origen en PliegoStack ni en el Design System: es infraestructura.
+
+**Objetivo.**
+Que lo que `peerDependencies` promete (React 18 y 19) esté comprobado en cada push, y que cualquier consumidor en 19 pueda instalar la librería sin sorpresas.
+
+**Alcance.**
+- Reproducir primero lo que rompe: instalar React 19 sin guardar y correr tests, typecheck y las pruebas de navegador. Anotar los fallos antes de arreglar nada.
+- Una matriz `react: [18, 19]` en `.github/workflows/ci.yml` para typecheck, tests y axe. Instala React sin tocar `package.json` ni el lockfile.
+- Arreglar lo que falle en 19 con el cambio mínimo (se esperan `act`, tipos de `ref` y `forwardRef`).
+- Cerrar la decisión 6 y actualizar la tabla de estado y «Estado actual».
+
+**No objetivos.**
+- Subir Vite, Storybook o TypeScript (decisión 5).
+- Cambiar el React por defecto de las `devDependencies`.
+- Componentes nuevos, capturas en CI, tema oscuro y dependencias nuevas.
+
+**Aceptación.**
+1. Con React 19 instalado sin guardar, `npm test` y `npm run typecheck` terminan en 0. Antes del arreglo queda registrado qué falló.
+2. Con React 19, `npm run build-storybook`, `npm run test:a11y` y `npm run test:touch` terminan en 0 sobre las 89 stories.
+3. `ci.yml` tiene la matriz 18/19 y ambas celdas pasan en una ejecución real (`gh run view`).
+4. Un paso de la matriz comprueba que el React instalado es el de la celda (`node -e "console.log(require('react').version)"`), para que una celda 19 no corra en 18 sin avisar.
+5. `package.json` no gana dependencias, `peerDependencies` queda igual y el lockfile no cambia (`git diff --stat package.json package-lock.json` no imprime nada).
+6. Si cambia código publicable hay un changeset `patch`. Si un arreglo cambia la API pública, se para y se pregunta a Chris.
+7. `npm test`, `npm run typecheck`, `npm run build` y `npm run build-storybook` terminan en 0 en la rama final.
+
+**Rollback.** Revertir el único commit. La matriz es solo de CI y no afecta a lo publicado.
+
+**Decisiones ya tomadas.**
+Chris aprobó el brief el 2026-10-25.
+
+**Preguntas abiertas.**
+Ninguna impide empezar.
+
 ---
 
 ## Decisiones
@@ -608,3 +918,8 @@ Las tomó el agente el 2026-10-16, por encargo de Chris («toma tú las decision
 39. **Las pruebas de navegador esperaban poco (2026-10-16).** Cerrada: `sb-show-main` se pone antes de que React monte la story, así que `a11y`, `visual` y `touch` podían medir una página vacía y pasar sin comprobar nada. `openStory` espera ahora a que haya algo que medir; con eso, a11y pasa 48 de 48 y las áreas, 96 de 96, en tres ejecuciones.
 40. **Marcas de escala de `OptionCard` bajo 40 px (2026-10-16).** Cerrada: la prueba de áreas encontró que `variant="notch"` medía 27–39 px con puntero fino; ahora `OptionCard` fija `min-height: 40px`, y la marca conserva su número pegado, sin crecer el texto. Cambia la captura de `OptionField · Scale`. El artifact de claude.ai se republicó con ese CSS y con las teclas verticales de `SegmentedControl` (versión 17, 2026-10-16, con la confirmación de Chris); las huellas de `bundle.js` y `bundle.css` coinciden con lo generado.
 41. **Cifras de finanzas (2026-10-19, L-14).** Confirmadas por Chris: gráfica en SVG propio, `locale` opcional, color de estado con signo y palabra, tabla de valores visible. Las tomó el agente y hay que confirmar: el color solo va con `flow` (un `Amount` neutro con signo negativo no se colorea); un cero no lleva color ni palabra; el importe no numérico, incluida una cadena como `"12.5"`, se escribe «sin dato» en vez de convertirse; una moneda desconocida escribe la cifra y el código recibido en lugar de lanzar; la serie de `TrendChart` deja un hueco en un valor ausente en vez de unir los vecinos; el contenedor de `MovementsTable` es una región enfocable para poder desplazarla con el teclado.
+42. **Estados del dashboard (2026-10-20, L-15).** Confirmadas por Chris al aprobar el brief: selector de periodo como `SegmentedControl`, variación en tinta y por la diferencia redondeada, datos anteriores visibles y marcados, `alert` solo sin datos, foco al panel tras reintentar, `metric-value`, `Metric` con filete, sin anuncio de «actualizado», `h2` fijo, y el abono en azul (`#1d4ed8`, elegido por el agente). Las tomó el agente al construir y hay que confirmar: el aviso de valores repetidos de `SegmentedControl` sale siempre, no solo en desarrollo, porque la librería no puede leer `process.env` sin romper el bundle del Design System; el candado de «reintentar» se abre cuando cambian `status` o `error`; tras reintentar, el foco no se mueve si quien reintentó ya está en otro control; una diferencia que no cabe en un número (`1e308` frente a `−1e308`) no escribe variación; y el error con datos se escribe en `color-danger-foreground`.
+43. **La comparación visual no ve un cambio de color en texto pequeño (2026-10-20).** Abierta: al pasar el abono de verde a azul, `npm run test:visual` siguió en verde con las referencias viejas, y `test:visual:update` no las reescribió, porque la diferencia cabe en la tolerancia por defecto de Playwright. Se borraron y regeneraron a mano las de `Amount · Flow` y `MovementsTable`. Propuesta: bajar `threshold` en `toHaveScreenshot`, o comprobar los colores con un test de estilos computados; es cambio de infraestructura y lo decide Chris.
+44. **Barras y orden y filtro (2026-10-20, L-16).** Confirmadas por Chris al aprobar el brief: series distinguidas con cuatro rellenos de tinta, nombre y posición (sin tonos ni tokens), máximo cuatro series, orden de tres estados, filtro por concepto y fecha escrita, anuncio del conteo 500 ms tras la última tecla y la entrada 43 sin resolver. Las tomó el agente al construir y hay que confirmar: el cero se marca con una línea en la base porque un `rect` de alto cero no se pinta; la tabla de valores de `BarChart` se desplaza dentro de una región enfocable (axe lo exigió con muchas series); los estilos de orden y filtro viven en `MovementsTable.controls.css` porque el test de L-14 de `MovementsTable.css` solo admite 1 px y 2 px y no se podía tocar; un concepto vacío se ordena como desconocido y va al final; el conteo anunciado usa el valor de cuando se dejó de escribir; la escala usa mitades para no desbordar con `Number.MAX_VALUE`; el filtro se escribe en un `<input type="search">` dentro de `Field`.
+45. **Dashboard compuesto (2026-10-21, L-17).** Confirmadas por Chris al aprobar el brief: `usePanelData` exportado, `announce` en `DataPanel`, el error se anuncia tras 250 ms sin esperar a los lentos, una moneda por panel, la tabla conserva filtro y orden al cambiar de periodo, una sola captura por story y sin sección con encabezado. Las tomó el agente al construir y hay que confirmar: el mínimo de columna es `18rem` y no `20rem` como decía el brief, porque con 20rem solo caben 2 columnas a 1024 px (se midió: esperaba 3 y salieron 2) y 18rem es lo máximo que deja 3; la cuenta de «cargando N paneles» se fija al terminar la espera de 250 ms y no se actualiza; el `Notice` de un panel con `announce={false}` usa `role="none"`; `usePanelData` no cachea y dos paneles con el mismo título se tratan como dos; el panel quitado de la story no llama a su cargador; `dom-accessibility-api` no se usa en los tests (no es dependencia directa); las capturas de la story `Con periodo` usan el periodo inicial sin retraso para ser estables.
+46. **Abono cian y cargo magenta (2026-10-21).** Pedido por Chris, que eligió que el abono use el mismo cian que `color-accent-ink` (`#0a6285`) y que el cargo tenga un token propio, `color-debit-foreground` (`#a21caf`, magenta, elegido por el agente), para no teñir de magenta los errores de `Field`, `Notice` y `DataPanel`. Sustituye al azul de la entrada 42. El test que separaba el abono del cian del foco en 15° de tono pasa a exigir cian y magenta. Abono y foco comparten color y se distinguen por signo, palabra y lugar; hay que revisarlo a mano.

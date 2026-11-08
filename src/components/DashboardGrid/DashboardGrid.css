@@ -1,0 +1,24 @@
+/*
+ * Las columnas salen del ancho mínimo y no de puntos de corte: 18rem (288 px)
+ * es lo que una cifra con su variación o una gráfica necesita para no
+ * apretarse, y es lo máximo que deja 3 columnas a 1024 px (con 20rem solo
+ * caben 2). De ahí salen 3 columnas a 1024 px, 2 a 768 y 1 a 375.
+ * El orden visual es el del DOM: aquí no hay order, dense ni posiciones.
+ */
+.pui-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-6);
+}
+
+/*
+ * Sin min-width: 0 una celda no baja de su contenido y una tabla ancha
+ * ensancharía la página; así la tabla se desplaza dentro de su región.
+ */
+.pui-dashboard-cell {
+  min-width: 0;
+}
+
+.pui-dashboard-cell--wide {
+  grid-column: 1 / -1;
+}

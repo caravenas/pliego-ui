@@ -1,0 +1,167 @@
+.pui-bars {
+  margin: 0;
+}
+
+.pui-bars__title {
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+
+.pui-bars__summary {
+  margin: var(--space-2) 0;
+  color: var(--color-text-secondary);
+}
+
+.pui-bars__empty {
+  margin: var(--space-4) 0;
+  color: var(--color-text-muted);
+}
+
+.pui-bars__more {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-secondary);
+}
+
+/* La leyenda nombra cada serie con texto; la muestra repite el relleno de sus barras. */
+.pui-bars__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.pui-bars__legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-primary);
+}
+
+.pui-bars__swatch {
+  flex: none;
+  width: var(--space-5);
+  height: var(--space-4);
+}
+
+.pui-bars__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* Los pesos de 1 px y 2 px son literales del sistema; el trazo no crece con el SVG. */
+.pui-bars__baseline {
+  stroke: var(--color-border);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+/* El contorno de tinta da el contraste de la barra con el papel, sea cual sea su relleno. */
+.pui-bars__bar,
+.pui-bars__sample {
+  stroke: var(--color-text-primary);
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+}
+
+.pui-bars__zero {
+  stroke: var(--color-text-primary);
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Piezas de los patrones: la tinta marca, el papel deja ver el fondo. */
+.pui-bars__ink {
+  fill: var(--color-text-primary);
+}
+
+.pui-bars__paper {
+  fill: var(--color-bg-secondary);
+}
+
+.pui-bars__mark {
+  fill: none;
+  stroke: var(--color-text-primary);
+  stroke-width: 1px;
+}
+
+.pui-bars__axis {
+  display: grid;
+  margin-top: var(--space-1);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.pui-bars__tick {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.pui-bars__values {
+  margin-top: var(--space-3);
+}
+
+.pui-bars__toggle {
+  display: flex;
+  align-items: center;
+  /* 40 px de área mínima, 44 con puntero grueso, como todo control. */
+  min-height: 40px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+@media (pointer: coarse) {
+  .pui-bars__toggle {
+    min-height: 44px;
+  }
+}
+
+/* Foco: anillo de 2 px de color-accent-ink, separado del borde. */
+.pui-bars__toggle:focus-visible {
+  outline: 2px solid var(--color-accent-ink);
+  outline-offset: 2px;
+}
+
+/* Con muchas series la tabla se ensancha: se desplaza dentro de su caja, no rompe la página. */
+.pui-bars__scroll {
+  overflow-x: auto;
+}
+
+/* Foco: anillo de 2 px de color-accent-ink, separado del borde. */
+.pui-bars__scroll:focus-visible {
+  outline: 2px solid var(--color-accent-ink);
+  outline-offset: 2px;
+}
+
+.pui-bars__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pui-bars__head {
+  padding: var(--space-2) var(--space-2) var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.pui-bars__head--value,
+.pui-bars__value {
+  text-align: right;
+}
+
+.pui-bars__cell {
+  padding: var(--space-2) var(--space-2) var(--space-2) 0;
+  border-bottom: 1px dotted var(--color-border);
+}
+
+.pui-bars__label {
+  color: var(--color-text-secondary);
+  font-weight: inherit;
+  text-align: left;
+}

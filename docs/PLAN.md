@@ -52,6 +52,7 @@ Plan canónico de la librería. Un agente implementa **solo** el incremento marc
 | L-17 | El dashboard de finanzas compuesto | hecho, con la revisión manual de Chris pendiente | ver `git log` (`feat: add the composed finance dashboard`) |
 | L-18 | Matriz React 18/19 en CI | hecho (CI en verde en las dos celdas, PR #3, ejecución 42150949599) | `f2ae025` |
 | L-19 | La verificación de `pliego-ui` como skill | hecho (revisión manual de Chris, 2026-11-09) | `703d24d` |
+| L-20 | Dos casos límite de L-16: fechas-hora mal formadas y series más allá de la cuarta | propuesto (brief sin aprobar) | |
 | L-13 | Re-sincronizar el Design System desde la librería | hecho (publicado en el artifact el 2026-10-16, versión 14) | `50d65e0` |
 
 Orden razonado: primero la red de seguridad (CI), luego los primitivos de formulario que todo lo demás usa (`Field`), luego los patrones propios en el orden en que aparecen en la ficha técnica, y solo entonces publicar y migrar. Radix entra cuando haga falta, no antes.
@@ -933,6 +934,47 @@ Ninguna bloquea el brief.
 - «Lo que el diff toca» se calcula contra `origin/main...HEAD`, con `--base` para cambiarla.
 - El mapa de funcionalidades se escribe a mano.
 - Todo sale de `main`: el cierre de L-18 se integra primero (`docs/l-18-close`) y la rama de L-19 se corta sobre `origin/main` con ese cierre; el PR de L-19 no arrastra commits de L-18.
+
+## L-20 — Dos casos límite de L-16: fechas-hora mal formadas y series más allá de la cuarta
+
+Un review de otra familia sobre los commits de L-14 a L-17 (2026-11-09, `~/.agents/plans/reporte-experimento-review-producto.md`) encontró dos defectos reales en L-16, y los dos se reprodujeron con código.
+Ninguno lo atrapó un test ni una revisión: los tests de L-16 no cubrían estos casos.
+Este incremento los arregla, con el test primero. No añade funcionalidad.
+
+**Objetivo.**
+Que `MovementsTable` ordene al final toda fecha que no sea ISO válida, también una fecha-hora mal formada, y que `BarChart` no diga «sin datos» mientras la tabla de debajo trae valores de una serie que no dibuja.
+
+**Alcance.**
+- `src/utils/sortMovements.ts`: la comprobación del día (`2026-02-31`) sigue igual. Cuando la cadena trae una parte de hora (`T…`), solo es fecha válida si `Date.parse` la entiende; si no, vale `null` y va al final. Una fecha sin hora conserva el comportamiento de hoy. Hoy `2026-10-01T25:00` y `2026-10-01Tnada` caen a la fecha del día y se ordenan como `2026-10-01`, antes que `2026-10-03`.
+- `src/components/BarChart/BarChart.tsx`: se dibujan las cuatro primeras series, como hasta ahora. Si ninguna de las dibujadas tiene un valor conocido pero alguna de las que no se dibujan sí lo tiene, el mensaje «sin datos para graficar» se acompaña de la frase `moreSeries` («se muestran 4 de 5 series; las demás están en la tabla»), de modo que la tarjeta no dice dos cosas opuestas. Sin ningún valor conocido en ninguna serie, sigue sin SVG y sin esa frase.
+- Un test nuevo por defecto, escrito antes del arreglo y visto fallar: uno en `src/utils/sortMovements.test.ts` y uno en `src/components/BarChart/BarChart.test.tsx`.
+- Una nota en «Decisiones» de este plan y un changeset de nivel `patch` para `@caravenas/pliego-ui`: son arreglos a código publicado.
+- La tabla de estado y «Estado actual» al cerrar.
+
+**No objetivos.**
+- Cambiar la API, las props, los tokens o el aspecto de `MovementsTable` y `BarChart` cuando los datos son válidos.
+- Stories nuevas o referencias visuales nuevas: los dos casos se cubren con tests, y una story nueva obligaría a regenerar la referencia de macOS.
+- Dibujar series más allá de la cuarta, o elegir cuáles dibujar por tener datos: el límite de cuatro es una decisión de L-16.
+- Revisar el resto de los incrementos con el reviewer más allá de L-20: el experimento ya cerró.
+- Tocar `docs/COMPONENTS.md` salvo que ya describa alguno de estos dos casos; hoy no lo hace.
+
+**Aceptación.**
+1. Un test de `sortMovements` comprueba que `2026-10-01T25:00`, `2026-10-01Tnada` y `2026-10-01T` van al final, en ascendente y en descendente, detrás de las fechas válidas `2026-10-03` y `2026-10-05`; y que `2026-10-01T10:30:00Z`, `2026-10-01T10:30:00` y `2026-10-01` siguen ordenándose por su instante. Se ejecuta con `npx vitest run src/utils/sortMovements.test.ts` antes del arreglo (falla y se pega la salida roja) y después (pasa).
+2. Un test de `BarChart` comprueba que con cuatro series de valores desconocidos y una quinta con `10` y `20`, el componente dice «sin datos para graficar», dice también que se muestran 4 de 5 series, no pinta ningún SVG y la tabla trae `$10.00` y `$20.00`; y que con las cinco series sin valores dice «sin datos para graficar», sin la frase de series y sin SVG. Se ejecuta con `npx vitest run src/components/BarChart/BarChart.test.tsx` antes del arreglo (falla y se pega la salida roja) y después (pasa).
+3. Con datos válidos nada cambia: los tests existentes de `sortMovements`, `BarChart` y `MovementsTable` pasan sin modificarse, y `git diff --stat origin/main -- src/components/MovementsTable src/components/BarChart/BarChart.css` no imprime nada.
+4. El diff toca solo `src/utils/sortMovements.ts`, `src/utils/sortMovements.test.ts`, `src/components/BarChart/BarChart.tsx`, `src/components/BarChart/BarChart.test.tsx`, `docs/PLAN.md` y un archivo en `.changeset/` de nivel `patch`: se comprueba con `git diff --stat origin/main`.
+5. `npm test`, `npm run typecheck`, `npm run build`, `npm run build-storybook`, `npm run test:a11y` y `npm run test:touch` terminan en 0 en la rama final, y `package.json` y `package-lock.json` no cambian.
+6. Review de otra familia del diff, con el mismo método del experimento (`run-worker.mjs --role reviewer --implementer-provider claude`, solo lectura): sin hallazgos críticos válidos pendientes. Los hallazgos que se contrasten con el código se corrigen o se descartan con la razón escrita en el cierre. Es la primera aplicación de la regla de «el reviewer en los PRs que tocan lógica».
+7. Revisión manual de Chris, que el agente deja sin marcar: abre `MovementsTable` ordenado por fecha con una fila de hora inválida en el Storybook compilado y confirma que esa fila queda al final.
+
+**Rollback.** Revertir el commit de L-20: los dos arreglos son aditivos y ningún otro incremento depende de ellos. El changeset se borra con él.
+
+**Decisiones propuestas** (las confirma Chris al aprobar).
+- Una fecha con parte de hora solo es válida si `Date.parse` la entiende. Es la regla más estrecha que cumple lo que el brief de L-16 ya decía («una fecha que no es ISO válida va siempre al final»), y no cambia el orden de las fechas sin hora.
+- En `BarChart`, el caso «las dibujadas no tienen datos pero otras sí» se resuelve **avisando** y no dibujando: es lo más pequeño que evita el mensaje contradictorio. La alternativa, saltarse las series sin datos para dibujar las siguientes, cambiaría el límite de cuatro que Chris confirmó en L-16.
+
+**Preguntas abiertas.**
+Ninguna bloquea el brief.
 
 ---
 

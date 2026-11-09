@@ -1,5 +1,20 @@
 # @caravenas/pliego-ui
 
+## 0.2.0
+
+### Minor Changes
+
+- ed22521: Credits in `Amount` and `MovementsTable` are now cyan (`color-success-foreground`, the same cyan as `color-accent-ink`) and debits are magenta, through a new token `color-debit-foreground`. The red of `color-danger-foreground` stays for errors. A credit or debit still carries its sign and its word, never only colour.
+- 6e5f41a: Add `Amount`, `MovementsTable` and `TrendChart` for finance dashboards, and the `color-success-foreground` token. Amounts are formatted with `Intl` from a currency code and an optional locale, unknown values read "sin dato", and the chart ships its values as a visible table.
+- ed22521: Add `BarChart`: grouped bars for several series in plain SVG, with a text legend, an ink fill pattern per series (solid, stripes, dots, cross) so no series depends on colour, and a visible table with every value. `MovementsTable` can now sort by date, concept or amount (`sortable`) and filter by concept or date (`filterable`); both are off by default, so existing tables render exactly as before. Unknown values always sort last, ties keep their original order, and the order and the number of visible rows are announced through a status region.
+- ed22521: Add the pieces to compose a finance dashboard. `usePanelData(key, load)` loads one panel per key (the period), derives `loading` in the very render the key changes, discards late responses from an older key and keeps the previous data with the key it belongs to. `DashboardStatus` announces once for the whole screen (loading, and errors grouped in one alert) so several panels do not speak at once. `DashboardGrid` and `DashboardCell` lay panels out in 3, 2 or 1 columns with the DOM order equal to the visual order. `DataPanel` gains `announce`, on by default, so a panel inside a dashboard can stay silent; nothing changes unless it is turned off.
+- ed22521: Add `Metric` and `DataPanel` for finance dashboards, and the `metric-value` text style. `Metric` writes how much a figure changed in words, never dividing by zero; `DataPanel` says in words whether it is loading, failed or showing older data, announces it through a status region and keeps focus on retry. `SegmentedControl` now renders nothing without options and keeps the first of repeated values. Credits are now blue instead of green (`color-success-foreground` is `#1d4ed8`).
+
+### Patch Changes
+
+- f8832d5: `OptionCard` now measures at least 40px tall with a fine pointer, scale notches included. Before, only the coarse-pointer rule (44px) held it.
+- 873d704: `SegmentedControl` with `kind="options"` now also answers to the up and down arrow keys, like a native radio group. `kind="tabs"` keeps left and right only.
+
 ## 0.1.0
 
 ### Minor Changes

@@ -6,6 +6,7 @@ interface IndexEntry {
   id: string;
   title: string;
   name: string;
+  importPath: string;
   type: 'story' | 'docs';
 }
 

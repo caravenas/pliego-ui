@@ -21,7 +21,10 @@ function dateKey(date: string): number | null {
   // Date.UTC desborda en silencio (31 de febrero pasa a marzo): se comprueba que el día sobrevive.
   if (day.getUTCFullYear() !== y || day.getUTCMonth() !== m - 1 || day.getUTCDate() !== d) return null;
   const time = Date.parse(date);
-  return Number.isFinite(time) ? time : day.getTime();
+  if (Number.isFinite(time)) return time;
+  // Una fecha con parte de hora que Date.parse no entiende (`T25:00`, `Tnada`) no es una fecha válida:
+  // solo una fecha sin hora cae a su día.
+  return date.includes('T') ? null : day.getTime();
 }
 
 function collatorFor(locale: string | undefined): Intl.Collator {

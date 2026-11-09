@@ -126,6 +126,8 @@ export const BarChart = forwardRef<HTMLElement, BarChartProps>(function BarChart
   const shown = series.slice(0, MAX_SERIES);
   const known = shown.flatMap((s) => categories.map((_, c) => s.values[c]).filter(isKnown));
   const hasData = known.length > 0;
+  // Las series que no se dibujan siguen en la tabla: si solo ellas traen valores, «sin datos» sería a medias cierto.
+  const hiddenHaveData = series.slice(MAX_SERIES).some((s) => categories.some((_, c) => isKnown(s.values[c])));
 
   // La escala siempre incluye el 0: una barra que no parte de cero miente.
   const min = Math.min(0, ...known);
@@ -209,7 +211,14 @@ export const BarChart = forwardRef<HTMLElement, BarChartProps>(function BarChart
           </div>
         </>
       ) : (
-        <p className="pui-bars__empty">{text.empty}</p>
+        <>
+          <p className="pui-bars__empty">{text.empty}</p>
+          {hiddenHaveData ? (
+            <p className="pui-bars__more pui-type-mono-note">
+              {fill(text.moreSeries, { shown: shown.length, total: series.length })}
+            </p>
+          ) : null}
+        </>
       )}
       <details className="pui-bars__values" open>
         <summary className="pui-bars__toggle pui-type-stat-label">{text.values}</summary>

@@ -18,6 +18,24 @@ const bars = (container: HTMLElement) => Array.from(container.querySelectorAll('
 const table = () => screen.getByRole('table');
 
 describe('BarChart · datos', () => {
+  it('con las cuatro series dibujadas sin valores y una quinta con valores, no dice solo «sin datos»: avisa de las series que no dibuja', () => {
+    const empty: BarSeries[] = ['a', 'b', 'c', 'd'].map((name) => ({ name, values: [null, null, null] }));
+    const { container } = renderChart({ series: [...empty, { name: 'e', values: [10, 20, null] }] });
+    expect(screen.getByText('sin datos para graficar')).toBeInTheDocument();
+    expect(screen.getByText('se muestran 4 de 5 series; las demás están en la tabla')).toBeInTheDocument();
+    expect(svg(container)).toBeNull();
+    expect(within(table()).getByText('$10.00')).toBeInTheDocument();
+    expect(within(table()).getByText('$20.00')).toBeInTheDocument();
+  });
+
+  it('con cinco series sin ningún valor dice «sin datos para graficar» sin la frase de series', () => {
+    const empty: BarSeries[] = ['a', 'b', 'c', 'd', 'e'].map((name) => ({ name, values: [null, null, null] }));
+    const { container } = renderChart({ series: empty });
+    expect(screen.getByText('sin datos para graficar')).toBeInTheDocument();
+    expect(screen.queryByText(/series; las demás están en la tabla/)).toBeNull();
+    expect(svg(container)).toBeNull();
+  });
+
   it('sin series, sin categorías o con una serie sin valores dice «sin datos para graficar» y no dibuja', () => {
     for (const props of [{ series: [] }, { categories: [] }, { series: [{ name: 'a', values: [] }] }, { series: [{ name: 'a', values: [null, undefined, NaN] }] }]) {
       const { container, unmount } = renderChart(props);

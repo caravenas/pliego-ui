@@ -5,5 +5,5 @@
     "worktree_symlinks: top-level ignored directories a worktree needs; none declared yet."
   ],
   "protected_paths": [".verify.conf", ".agents/policy.json"],
-  "worktree_symlinks": []
+  "worktree_symlinks": ["node_modules"]
 }
